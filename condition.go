@@ -1,7 +1,7 @@
 package sqlbuilder
 
 type Condition interface {
-	toSql() (string, []interface{}, error)
+	serialize() (string, []interface{}, error)
 }
 
 type connectCondition struct {
@@ -9,7 +9,7 @@ type connectCondition struct {
 	conds     []Condition
 }
 
-func (c *connectCondition) toSql() (string, []interface{}, error) {
+func (c *connectCondition) serialize() (string, []interface{}, error) {
 	query, attrs := "", []interface{}{}
 
 	first := true
@@ -20,7 +20,7 @@ func (c *connectCondition) toSql() (string, []interface{}, error) {
 			query += " " + c.connector + " "
 		}
 
-		q, a, err := cond.toSql()
+		q, a, err := cond.serialize()
 		if err != nil {
 			return "", []interface{}{}, nil
 		}
@@ -65,11 +65,11 @@ func EqL(left Column, right interface{}) Condition {
 	}
 }
 
-func (c *eqCondition) toSql() (string, []interface{}, error) {
+func (c *eqCondition) serialize() (string, []interface{}, error) {
 	query, attrs := "", []interface{}{}
 	switch l := c.left.(type) {
 	case Column:
-		n, _, err := l.toSql()
+		n, _, err := l.serialize()
 		if err != nil {
 			return "", []interface{}{}, err
 		}
@@ -83,7 +83,7 @@ func (c *eqCondition) toSql() (string, []interface{}, error) {
 
 	switch r := c.right.(type) {
 	case Column:
-		n, _, err := r.toSql()
+		n, _, err := r.serialize()
 		if err != nil {
 			return "", []interface{}{}, err
 		}

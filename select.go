@@ -4,25 +4,25 @@ import (
 	"errors"
 )
 
-type SelectBuilder struct {
-	columns []sqlizable
+type SelectStatement struct {
+	columns []Expression
 	from    *Table
 	where   Condition
 	err     error
 }
 
-func Select(columns ...Column) *SelectBuilder {
-	sqlizable_column := make([]sqlizable, len(columns))
+func Select(columns ...Column) *SelectStatement {
+	ex_column := make([]Expression, len(columns))
 	for i := range columns {
-		sqlizable_column[i] = columns[i]
+		ex_column[i] = columns[i]
 	}
 
-	return &SelectBuilder{
-		columns: sqlizable_column,
+	return &SelectStatement{
+		columns: ex_column,
 	}
 }
 
-func (b *SelectBuilder) From(table *Table) *SelectBuilder {
+func (b *SelectStatement) From(table *Table) *SelectBuilder {
 	if b.err != nil {
 		return b
 	}
@@ -31,7 +31,7 @@ func (b *SelectBuilder) From(table *Table) *SelectBuilder {
 	return b
 }
 
-func (b *SelectBuilder) Where(cond Condition) *SelectBuilder {
+func (b *SelectStatement) Where(cond Condition) *SelectBuilder {
 	if b.err != nil {
 		return b
 	}
@@ -40,11 +40,11 @@ func (b *SelectBuilder) Where(cond Condition) *SelectBuilder {
 	return b
 }
 
-func (b *SelectBuilder) Error() error {
+func (b *SelectStatement) Error() error {
 	return b.err
 }
 
-func (b *SelectBuilder) ToSql() (query string, attrs []interface{}, err error) {
+func (b *SelectStatement) ToSql() (query string, attrs []interface{}, err error) {
 	if b.err != nil {
 		return "", []interface{}{}, b.err
 	}
@@ -56,7 +56,7 @@ func (b *SelectBuilder) ToSql() (query string, attrs []interface{}, err error) {
 
 	// SELECT COLUMN
 	query += "SELECT "
-	query, attrs, err = appendListToQuery(b.columns, query, attrs, " ")
+	query, attrs, err = appendExpressionsToQuery(b.columns, query, attrs, " ")
 	if err != nil {
 		return "", []interface{}{}, err
 	}
@@ -64,7 +64,7 @@ func (b *SelectBuilder) ToSql() (query string, attrs []interface{}, err error) {
 	// FROM
 	if b.from != nil {
 		query += " FROM "
-		query, attrs, err = appendToQuery(b.from, query, attrs)
+		query, attrs, err = appendItemToQuery(b.from, query, attrs)
 		if err != nil {
 			return "", []interface{}{}, err
 		}
@@ -75,12 +75,10 @@ func (b *SelectBuilder) ToSql() (query string, attrs []interface{}, err error) {
 	// WHERE
 	if b.where != nil {
 		query += " WHERE "
-		q, a, err := b.where.toSql()
+		query, attrs, err = appendItemToQuery(b.where, query, attrs)
 		if err != nil {
 			return "", []interface{}{}, err
 		}
-		query += q
-		attrs = append(attrs, a...)
 	}
 
 	return query, attrs, nil

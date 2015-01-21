@@ -2,15 +2,23 @@ package sqlbuilder
 
 var dialect Dialect
 
-type Sqlizable interface {
+type Statement interface {
 	ToSql() (query string, attrs []interface{}, err error)
 }
 
-type sqlizable interface {
-	toSql() (query string, attrs []interface{}, err error)
+type serializable interface {
+	serialize() (parts string, attrs []interface{}, err error)
 }
 
-func appendListToQuery(parts []sqlizable, query string, attrs []interface{}, separator string) (string, []interface{}, error) {
+type Clause interface {
+	serializable
+}
+
+type Expression interface {
+	serializable
+}
+
+func appendExpressionsToQuery(parts []Expression, query string, attrs []interface{}, separator string) (string, []interface{}, error) {
 	first := true
 	for _, part := range parts {
 		if first {
@@ -20,7 +28,7 @@ func appendListToQuery(parts []sqlizable, query string, attrs []interface{}, sep
 		}
 
 		var err error
-		query, attrs, err = appendToQuery(part, query, attrs)
+		query, attrs, err = appendItemToQuery(part, query, attrs)
 		if err != nil {
 			return "", []interface{}{}, nil
 		}
@@ -28,8 +36,8 @@ func appendListToQuery(parts []sqlizable, query string, attrs []interface{}, sep
 	return query, attrs, nil
 }
 
-func appendToQuery(part sqlizable, query string, attrs []interface{}) (string, []interface{}, error) {
-	parts_query, parts_attrs, err := part.toSql()
+func appendItemToQuery(part serializable, query string, attrs []interface{}) (string, []interface{}, error) {
+	parts_query, parts_attrs, err := part.serialize()
 	if err != nil {
 		return "", []interface{}{}, err
 	}

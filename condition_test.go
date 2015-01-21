@@ -15,7 +15,7 @@ func TestEqCondition(t *testing.T) {
 
 	// case Eq:  (column)=(column)
 	eq := Eq(table1.C("id"), table1.C("test1"))
-	query, attrs, err := eq.toSql()
+	query, attrs, err := eq.serialize()
 	if query != `"TABLE_A"."id"="TABLE_A"."test1"` {
 		t.Error("got", query)
 	}
@@ -28,7 +28,7 @@ func TestEqCondition(t *testing.T) {
 
 	// case EqL:  (column)=(literal)
 	eqL := EqL(table1.C("id"), 1)
-	query, attrs, err = eqL.toSql()
+	query, attrs, err = eqL.serialize()
 	if query != `"TABLE_A"."id"=?` {
 		t.Error("got", query)
 	}
@@ -51,7 +51,7 @@ func TestAndCondition(t *testing.T) {
 	eq2 := EqL(table1.C("id"), 1)
 
 	and := And(eq1, eq2)
-	query, attrs, err := and.toSql()
+	query, attrs, err := and.serialize()
 	if query != `"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=?` {
 		t.Error("got", query)
 	}
@@ -74,7 +74,7 @@ func TestOrCondition(t *testing.T) {
 	eq2 := EqL(table1.C("id"), 1)
 
 	or := Or(eq1, eq2)
-	query, attrs, err := or.toSql()
+	query, attrs, err := or.serialize()
 	if query != `"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?` {
 		t.Error("got", query)
 	}
