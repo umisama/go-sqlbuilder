@@ -5,13 +5,13 @@ import (
 )
 
 type SelectBuilder struct {
-	columns []Sqlizable
+	columns []sqlizable
 	from    *Table
 	err     error
 }
 
 func Select(columns ...Column) *SelectBuilder {
-	sqlizable_column := make([]Sqlizable, len(columns))
+	sqlizable_column := make([]sqlizable, len(columns))
 	for i := range columns {
 		sqlizable_column[i] = columns[i]
 	}
@@ -30,7 +30,7 @@ func (b *SelectBuilder) From(table *Table) *SelectBuilder {
 	return b
 }
 
-func (b *SelectBuilder) Where( /*cond Condition*/ ) *SelectBuilder {
+func (b *SelectBuilder) Where(cond Condition) *SelectBuilder {
 	if b.err != nil {
 		return b
 	}

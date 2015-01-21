@@ -26,7 +26,7 @@ func NewTable(name string, columns ...Column) (*Table, error) {
 	return t, nil
 }
 
-func (m *Table) ToSql() (string, []interface{}, error) {
+func (m *Table) toSql() (string, []interface{}, error) {
 	return dialect.QuoteField(m.name), []interface{}{}, nil
 }
 

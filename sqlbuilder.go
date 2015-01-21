@@ -6,7 +6,11 @@ type Sqlizable interface {
 	ToSql() (query string, attrs []interface{}, err error)
 }
 
-func appendListToQuery(parts []Sqlizable, query string, attrs []interface{}, separator string) (string, []interface{}, error) {
+type sqlizable interface {
+	toSql() (query string, attrs []interface{}, err error)
+}
+
+func appendListToQuery(parts []sqlizable, query string, attrs []interface{}, separator string) (string, []interface{}, error) {
 	first := true
 	for _, part := range parts {
 		if first {
@@ -24,8 +28,8 @@ func appendListToQuery(parts []Sqlizable, query string, attrs []interface{}, sep
 	return query, attrs, nil
 }
 
-func appendToQuery(part Sqlizable, query string, attrs []interface{}) (string, []interface{}, error) {
-	parts_query, parts_attrs, err := part.ToSql()
+func appendToQuery(part sqlizable, query string, attrs []interface{}) (string, []interface{}, error) {
+	parts_query, parts_attrs, err := part.toSql()
 	if err != nil {
 		return "", []interface{}{}, err
 	}

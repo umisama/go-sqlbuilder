@@ -5,7 +5,7 @@ type Column interface {
 	NotNull() bool
 	TableName() *Table
 	setTableName(*Table)
-	ToSql() (string, []interface{}, error)
+	toSql() (string, []interface{}, error)
 }
 
 func IntColumn(name string, notnull bool) Column {
@@ -84,7 +84,7 @@ func (m *baseColumn) setTableName(table *Table) {
 	m.table = table
 }
 
-func (m *baseColumn) ToSql() (string, []interface{}, error) {
+func (m *baseColumn) toSql() (string, []interface{}, error) {
 	return dialect.QuoteField(m.table.name) + "." + dialect.QuoteField(m.name), []interface{}{}, nil
 }
 
