@@ -24,7 +24,7 @@ func init() {
 ```go
 table1 := sb.NewTable(
 	"TABLE_NAME",
-	sb.IntColumn("id", nil, false),
+	sb.IntColumn("id", false),
 	sb.StrColumn("name", []sb.ColumnOptions{
 		sb.UTF8,
 		sb.UTF8CaseInsensitive,
