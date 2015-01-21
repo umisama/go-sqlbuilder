@@ -22,7 +22,7 @@ func Select(columns ...Column) *SelectStatement {
 	}
 }
 
-func (b *SelectStatement) From(table *Table) *SelectBuilder {
+func (b *SelectStatement) From(table *Table) *SelectStatement {
 	if b.err != nil {
 		return b
 	}
@@ -31,7 +31,7 @@ func (b *SelectStatement) From(table *Table) *SelectBuilder {
 	return b
 }
 
-func (b *SelectStatement) Where(cond Condition) *SelectBuilder {
+func (b *SelectStatement) Where(cond Condition) *SelectStatement {
 	if b.err != nil {
 		return b
 	}

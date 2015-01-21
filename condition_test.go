@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestEqCondition(t *testing.T) {
+func TestBinaryCondition(t *testing.T) {
 	table1, _ := NewTable(
 		"TABLE_A",
 		IntColumn("id", false),
@@ -13,31 +13,75 @@ func TestEqCondition(t *testing.T) {
 		IntColumn("test2", false),
 	)
 
-	// case Eq:  (column)=(column)
-	eq := Eq(table1.C("id"), table1.C("test1"))
-	query, attrs, err := eq.serialize()
-	if query != `"TABLE_A"."id"="TABLE_A"."test1"` {
-		t.Error("got", query)
-	}
-	if !reflect.DeepEqual(attrs, []interface{}{}) {
-		t.Error("got", attrs)
-	}
-	if err != nil {
-		t.Error("got", err)
+	type testcase struct {
+		cond  Condition
+		query string
+		attrs []interface{}
+		err   error
 	}
 
-	// case EqL:  (column)=(literal)
-	eqL := EqL(table1.C("id"), 1)
-	query, attrs, err = eqL.serialize()
-	if query != `"TABLE_A"."id"=?` {
-		t.Error("got", query)
+	var cases = []testcase{
+		{
+			Eq(table1.C("id"), table1.C("test1")),
+			`"TABLE_A"."id"="TABLE_A"."test1"`,
+			[]interface{}{},
+			nil,
+		}, {
+			Eq(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id"=?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			NotEq(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id"<>?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			Gt(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id">?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			Gte(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id">=?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			Lt(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id"<?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			Lte(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id"<=?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			Lte(table1.C("id"), Literal(1)),
+			`"TABLE_A"."id"<=?`,
+			[]interface{}{1},
+			nil,
+		}, {
+			Like(table1.C("id"), Literal("hoge")),
+			`"TABLE_A"."id" LIKE ?`,
+			[]interface{}{"hoge"},
+			nil,
+		},
 	}
-	if !reflect.DeepEqual(attrs, []interface{}{1}) {
-		t.Error("got", attrs)
+
+	for i, c := range cases {
+		query, attrs, err := c.cond.serialize()
+		if query != c.query {
+			t.Error("got:", query, " case:", i)
+		}
+		if !reflect.DeepEqual(attrs, c.attrs) {
+			t.Error("got:", attrs, " case:", i)
+		}
+		if err != c.err {
+			t.Error("got:", err, " case:", i)
+		}
 	}
-	if err != nil {
-		t.Error("got", err)
-	}
+
 }
 
 func TestAndCondition(t *testing.T) {
@@ -48,14 +92,15 @@ func TestAndCondition(t *testing.T) {
 		IntColumn("test2", false),
 	)
 	eq1 := Eq(table1.C("id"), table1.C("test1"))
-	eq2 := EqL(table1.C("id"), 1)
+	eq2 := Eq(table1.C("id"), Literal(1))
+	eq3 := Eq(table1.C("id"), Literal(2))
 
-	and := And(eq1, eq2)
+	and := And(eq1, eq2, eq3)
 	query, attrs, err := and.serialize()
-	if query != `"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=?` {
+	if query != `"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?` {
 		t.Error("got", query)
 	}
-	if !reflect.DeepEqual(attrs, []interface{}{1}) {
+	if !reflect.DeepEqual(attrs, []interface{}{1, 2}) {
 		t.Error("got", attrs)
 	}
 	if err != nil {
@@ -71,7 +116,7 @@ func TestOrCondition(t *testing.T) {
 		IntColumn("test2", false),
 	)
 	eq1 := Eq(table1.C("id"), table1.C("test1"))
-	eq2 := EqL(table1.C("id"), 1)
+	eq2 := Eq(table1.C("id"), Literal(1))
 
 	or := Or(eq1, eq2)
 	query, attrs, err := or.serialize()

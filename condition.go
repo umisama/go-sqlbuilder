@@ -46,51 +46,129 @@ func Or(conds ...Condition) Condition {
 	}
 }
 
-type eqCondition struct {
-	left  interface{}
-	right interface{}
+type binaryOperationCondition struct {
+	left     Expression
+	right    Expression
+	operator string
 }
 
-func Eq(left, right Column) Condition {
-	return &eqCondition{
-		left:  left,
-		right: right,
+func Eq(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: "=",
 	}
 }
 
-func EqL(left Column, right interface{}) Condition {
-	return &eqCondition{
-		left:  left,
-		right: right,
+func NotEq(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: "<>",
 	}
 }
 
-func (c *eqCondition) serialize() (string, []interface{}, error) {
+func Gt(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: ">",
+	}
+}
+
+func Gte(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: ">=",
+	}
+}
+
+func Lt(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: "<",
+	}
+}
+
+func Lte(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: "<=",
+	}
+}
+
+func Like(left, right Expression) Condition {
+	return &binaryOperationCondition{
+		left:     left,
+		right:    right,
+		operator: " LIKE ",
+	}
+}
+
+func Between(left, low, high Expression) Condition {
+	return &betweenCondition{
+		left:   left,
+		lower:  low,
+		higher: high,
+	}
+}
+
+func (c *binaryOperationCondition) serialize() (string, []interface{}, error) {
 	query, attrs := "", []interface{}{}
-	switch l := c.left.(type) {
-	case Column:
-		n, _, err := l.serialize()
-		if err != nil {
-			return "", []interface{}{}, err
-		}
-		query += n
-	default:
-		query += "?"
-		attrs = append(attrs, l)
+
+	// left hand side
+	var err error
+	query, attrs, err = appendItemToQuery(c.left, query, attrs)
+	if err != nil {
+		return "", []interface{}{}, err
 	}
 
-	query += "="
+	// operator
+	query += c.operator
 
-	switch r := c.right.(type) {
-	case Column:
-		n, _, err := r.serialize()
-		if err != nil {
-			return "", []interface{}{}, err
-		}
-		query += n
-	default:
-		query += "?"
-		attrs = append(attrs, r)
+	// right hand side
+	query, attrs, err = appendItemToQuery(c.right, query, attrs)
+	if err != nil {
+		return "", []interface{}{}, err
+	}
+
+	return query, attrs, nil
+}
+
+type betweenCondition struct {
+	left   Expression
+	lower  Expression
+	higher Expression
+}
+
+func (c *betweenCondition) serialize() (string, []interface{}, error) {
+	query, attrs := "", []interface{}{}
+
+	// left hand side
+	var err error
+	query, attrs, err = appendItemToQuery(c.left, query, attrs)
+	if err != nil {
+		return "", []interface{}{}, err
+	}
+
+	// operator
+	query += " BETWEEN "
+
+	// right hand side(lower)
+	query, attrs, err = appendItemToQuery(c.lower, query, attrs)
+	if err != nil {
+		return "", []interface{}{}, err
+	}
+
+	query += " AND "
+
+	// right hand side(higher)
+	query, attrs, err = appendItemToQuery(c.higher, query, attrs)
+	if err != nil {
+		return "", []interface{}{}, err
 	}
 
 	return query, attrs, nil
