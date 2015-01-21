@@ -7,6 +7,7 @@ import (
 type SelectBuilder struct {
 	columns []sqlizable
 	from    *Table
+	where   Condition
 	err     error
 }
 
@@ -35,6 +36,7 @@ func (b *SelectBuilder) Where(cond Condition) *SelectBuilder {
 		return b
 	}
 
+	b.where = cond
 	return b
 }
 
@@ -58,17 +60,27 @@ func (b *SelectBuilder) ToSql() (query string, attrs []interface{}, err error) {
 	if err != nil {
 		return "", []interface{}{}, err
 	}
-	query += " "
 
 	// FROM
 	if b.from != nil {
-		query += "FROM "
+		query += " FROM "
 		query, attrs, err = appendToQuery(b.from, query, attrs)
 		if err != nil {
 			return "", []interface{}{}, err
 		}
 	} else {
 		return "", []interface{}{}, errors.New("from is not found")
+	}
+
+	// WHERE
+	if b.where != nil {
+		query += " WHERE "
+		q, a, err := b.where.toSql()
+		if err != nil {
+			return "", []interface{}{}, err
+		}
+		query += q
+		attrs = append(attrs, a...)
 	}
 
 	return query, attrs, nil
