@@ -4,11 +4,12 @@ type Condition interface {
 	toSql() (string, []interface{}, error)
 }
 
-type andCondition struct {
-	conds []Condition
+type connectCondition struct {
+	connector string
+	conds     []Condition
 }
 
-func (c *andCondition) toSql() (string, []interface{}, error) {
+func (c *connectCondition) toSql() (string, []interface{}, error) {
 	query, attrs := "", []interface{}{}
 
 	first := true
@@ -16,34 +17,7 @@ func (c *andCondition) toSql() (string, []interface{}, error) {
 		if first {
 			first = false
 		} else {
-			query += " AND "
-		}
-
-		q, a, err := cond.toSql()
-		if err != nil {
-			return "", []interface{}{}, nil
-		}
-
-		query += q
-		attrs = append(attrs, a...)
-	}
-
-	return query, attrs, nil
-}
-
-type orCondition struct {
-	conds []Condition
-}
-
-func (c *orCondition) toSql() (string, []interface{}, error) {
-	query, attrs := "", []interface{}{}
-
-	first := true
-	for _, cond := range c.conds {
-		if first {
-			first = false
-		} else {
-			query += " OR "
+			query += " " + c.connector + " "
 		}
 
 		q, a, err := cond.toSql()
@@ -59,14 +33,16 @@ func (c *orCondition) toSql() (string, []interface{}, error) {
 }
 
 func And(conds ...Condition) Condition {
-	return &andCondition{
-		conds: conds,
+	return &connectCondition{
+		connector: "AND",
+		conds:     conds,
 	}
 }
 
 func Or(conds ...Condition) Condition {
-	return &orCondition{
-		conds: conds,
+	return &connectCondition{
+		connector: "OR",
+		conds:     conds,
 	}
 }
 
