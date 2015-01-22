@@ -4,6 +4,7 @@ var dialect Dialect
 
 type Statement interface {
 	ToSql() (query string, attrs []interface{}, err error)
+	Error() error
 }
 
 type serializable interface {
@@ -19,6 +20,24 @@ type Expression interface {
 }
 
 func appendExpressionsToQuery(parts []Expression, query string, attrs []interface{}, separator string) (string, []interface{}, error) {
+	first := true
+	for _, part := range parts {
+		if first {
+			first = false
+		} else {
+			query += separator
+		}
+
+		var err error
+		query, attrs, err = appendItemToQuery(part, query, attrs)
+		if err != nil {
+			return "", []interface{}{}, nil
+		}
+	}
+	return query, attrs, nil
+}
+
+func appendItemsToQuery(parts []serializable, query string, attrs []interface{}, separator string) (string, []interface{}, error) {
 	first := true
 	for _, part := range parts {
 		if first {

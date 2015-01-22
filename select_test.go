@@ -17,14 +17,14 @@ func TestSelect(t *testing.T) {
 		From(table1).
 		Where(
 		And(
-			Eq(table1.C("id"), Literal(1)),
-			Eq(table1.C("test1"), Literal(2)),
+			Eq(table1.C("id"), L(1)),
+			Eq(table1.C("test1"), L(2)),
 		)).
 		ToSql()
 	if query != `SELECT "TABLE_A"."test1" "TABLE_A"."test2" FROM "TABLE_A" WHERE "TABLE_A"."id"=? AND "TABLE_A"."test1"=?;` {
 		t.Error("got", query)
 	}
-	if !reflect.DeepEqual(attrs, []interface{}{1, 2}) {
+	if !reflect.DeepEqual(attrs, []interface{}{int64(1), int64(2)}) {
 		t.Error("got", attrs)
 	}
 	if err != nil {

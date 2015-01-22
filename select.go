@@ -81,5 +81,5 @@ func (b *SelectStatement) ToSql() (query string, attrs []interface{}, err error)
 		}
 	}
 
-	return query, attrs, nil
+	return
 }
