@@ -70,15 +70,16 @@ func TestBinaryCondition(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		query, attrs, err := c.cond.serialize()
-		if query != c.query {
-			t.Error("got:", query, " case:", i)
+		bldr := newBuilder()
+		c.cond.serialize(bldr)
+		if bldr.Query() != c.query {
+			t.Error("got:", bldr.Query(), " case:", i)
 		}
-		if !reflect.DeepEqual(attrs, c.attrs) {
-			t.Error("got:", attrs, " case:", i)
+		if !reflect.DeepEqual(bldr.Args(), c.attrs) {
+			t.Error("got:", bldr.Args(), " case:", i)
 		}
-		if err != c.err {
-			t.Error("got:", err, " case:", i)
+		if bldr.Err() != c.err {
+			t.Error("got:", bldr.Err(), " case:", i)
 		}
 	}
 
@@ -96,15 +97,17 @@ func TestAndCondition(t *testing.T) {
 	eq3 := Eq(table1.C("id"), L(2))
 
 	and := And(eq1, eq2, eq3)
-	query, attrs, err := and.serialize()
-	if query != `"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?` {
-		t.Error("got", query)
+
+	bldr := newBuilder()
+	and.serialize(bldr)
+	if bldr.Query() != `"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?` {
+		t.Error("got", bldr.Query())
 	}
-	if !reflect.DeepEqual(attrs, []interface{}{int64(1), int64(2)}) {
-		t.Error("got", attrs)
+	if !reflect.DeepEqual(bldr.Args(), []interface{}{int64(1), int64(2)}) {
+		t.Error("got", bldr.Args())
 	}
-	if err != nil {
-		t.Error("got", err)
+	if bldr.Err() != nil {
+		t.Error("got", bldr.Err())
 	}
 }
 
@@ -119,14 +122,16 @@ func TestOrCondition(t *testing.T) {
 	eq2 := Eq(table1.C("id"), L(1))
 
 	or := Or(eq1, eq2)
-	query, attrs, err := or.serialize()
-	if query != `"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?` {
-		t.Error("got", query)
+
+	b := newBuilder()
+	or.serialize(b)
+	if b.Query() != `"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?` {
+		t.Error("got", b.Query())
 	}
-	if !reflect.DeepEqual(attrs, []interface{}{int64(1)}) {
-		t.Error("got", attrs)
+	if !reflect.DeepEqual(b.Args(), []interface{}{int64(1)}) {
+		t.Error("got", b.Args())
 	}
-	if err != nil {
-		t.Error("got", err)
+	if b.Err() != nil {
+		t.Error("got", b.Err())
 	}
 }

@@ -1,7 +1,7 @@
 package sqlbuilder
 
 type Condition interface {
-	serialize() (string, []interface{}, error)
+	serializable
 }
 
 type connectCondition struct {
@@ -9,27 +9,17 @@ type connectCondition struct {
 	conds     []Condition
 }
 
-func (c *connectCondition) serialize() (string, []interface{}, error) {
-	query, attrs := "", []interface{}{}
-
+func (c *connectCondition) serialize(bldr *builder) {
 	first := true
 	for _, cond := range c.conds {
 		if first {
 			first = false
 		} else {
-			query += " " + c.connector + " "
+			bldr.Append(" "+c.connector+" ", nil)
 		}
-
-		q, a, err := cond.serialize()
-		if err != nil {
-			return "", []interface{}{}, nil
-		}
-
-		query += q
-		attrs = append(attrs, a...)
+		cond.serialize(bldr)
 	}
-
-	return query, attrs, nil
+	return
 }
 
 func And(conds ...Condition) Condition {
@@ -116,26 +106,11 @@ func Between(left, low, high Expression) Condition {
 	}
 }
 
-func (c *binaryOperationCondition) serialize() (string, []interface{}, error) {
-	query, attrs := "", []interface{}{}
-
-	// left hand side
-	var err error
-	query, attrs, err = appendItemToQuery(c.left, query, attrs)
-	if err != nil {
-		return "", []interface{}{}, err
-	}
-
-	// operator
-	query += c.operator
-
-	// right hand side
-	query, attrs, err = appendItemToQuery(c.right, query, attrs)
-	if err != nil {
-		return "", []interface{}{}, err
-	}
-
-	return query, attrs, nil
+func (c *binaryOperationCondition) serialize(bldr *builder) {
+	bldr.AppendItem(c.left)
+	bldr.Append(c.operator, nil)
+	bldr.AppendItem(c.right)
+	return
 }
 
 type betweenCondition struct {
@@ -144,32 +119,11 @@ type betweenCondition struct {
 	higher Expression
 }
 
-func (c *betweenCondition) serialize() (string, []interface{}, error) {
-	query, attrs := "", []interface{}{}
-
-	// left hand side
-	var err error
-	query, attrs, err = appendItemToQuery(c.left, query, attrs)
-	if err != nil {
-		return "", []interface{}{}, err
-	}
-
-	// operator
-	query += " BETWEEN "
-
-	// right hand side(lower)
-	query, attrs, err = appendItemToQuery(c.lower, query, attrs)
-	if err != nil {
-		return "", []interface{}{}, err
-	}
-
-	query += " AND "
-
-	// right hand side(higher)
-	query, attrs, err = appendItemToQuery(c.higher, query, attrs)
-	if err != nil {
-		return "", []interface{}{}, err
-	}
-
-	return query, attrs, nil
+func (c *betweenCondition) serialize(bldr *builder) {
+	bldr.AppendItem(c.left)
+	bldr.Append(" BETWEEN ", nil)
+	bldr.AppendItem(c.lower)
+	bldr.Append(" AND ", nil)
+	bldr.AppendItem(c.higher)
+	return
 }

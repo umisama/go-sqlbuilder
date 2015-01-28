@@ -26,8 +26,9 @@ func NewTable(name string, columns ...Column) (*Table, error) {
 	return t, nil
 }
 
-func (m *Table) serialize() (string, []interface{}, error) {
-	return dialect.QuoteField(m.name), []interface{}{}, nil
+func (m *Table) serialize(bldr *builder) {
+	bldr.Append(dialect.QuoteField(m.name), nil)
+	return
 }
 
 func (m *Table) C(name string) Column {

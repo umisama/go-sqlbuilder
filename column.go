@@ -1,11 +1,12 @@
 package sqlbuilder
 
 type Column interface {
+	serializable
+
 	Name() string
 	NotNull() bool
 	TableName() *Table
 	setTableName(*Table)
-	serialize() (string, []interface{}, error)
 }
 
 func IntColumn(name string, notnull bool) Column {
@@ -84,8 +85,9 @@ func (m *baseColumn) setTableName(table *Table) {
 	m.table = table
 }
 
-func (m *baseColumn) serialize() (string, []interface{}, error) {
-	return dialect.QuoteField(m.table.name) + "." + dialect.QuoteField(m.name), []interface{}{}, nil
+func (m *baseColumn) serialize(bldr *builder) {
+	bldr.Append(dialect.QuoteField(m.table.name)+"."+dialect.QuoteField(m.name), nil)
+	return
 }
 
 type intColumn struct {

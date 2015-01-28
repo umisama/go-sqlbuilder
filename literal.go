@@ -26,17 +26,19 @@ func L(v interface{}) Literal {
 	}
 }
 
-func (l *literal) serialize() (string, []interface{}, error) {
+func (l *literal) serialize(bldr *builder) {
 	val, err := l.converted()
 	if err != nil {
-		return "", []interface{}{}, err
+		bldr.SetError(err)
+		return
 	}
 
 	if l.placeholder {
-		return "?", []interface{}{val}, nil
+		bldr.Append("?", []interface{}{val})
 	} else {
-		return l.string(), []interface{}{}, nil
+		bldr.Append(l.string(), nil)
 	}
+	return
 }
 
 func (l *literal) converted() (interface{}, error) {
