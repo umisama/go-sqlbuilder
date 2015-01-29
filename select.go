@@ -6,7 +6,7 @@ import (
 
 type SelectStatement struct {
 	columns []Expression
-	from    *Table
+	from    Table
 	where   Condition
 }
 
@@ -21,7 +21,7 @@ func Select(columns ...Column) *SelectStatement {
 	}
 }
 
-func (b *SelectStatement) From(table *Table) *SelectStatement {
+func (b *SelectStatement) From(table Table) *SelectStatement {
 	b.from = table
 	return b
 }

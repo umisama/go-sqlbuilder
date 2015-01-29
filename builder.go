@@ -26,10 +26,16 @@ func (b *builder) Err() error {
 }
 
 func (b *builder) Query() string {
+	if b.err != nil {
+		return ""
+	}
 	return b.query.String()
 }
 
 func (b *builder) Args() []interface{} {
+	if b.err != nil {
+		return []interface{}{}
+	}
 	return b.args
 }
 
@@ -37,7 +43,6 @@ func (b *builder) SetError(err error) {
 	if b.err != nil {
 		return
 	}
-
 	b.err = err
 	return
 }

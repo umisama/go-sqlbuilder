@@ -5,8 +5,8 @@ type Column interface {
 
 	Name() string
 	NotNull() bool
-	TableName() *Table
-	setTableName(*Table)
+	TableName() Table
+	setTableName(Table)
 }
 
 func IntColumn(name string, notnull bool) Column {
@@ -66,7 +66,7 @@ func BytesColumn(name string, notnull bool) Column {
 type baseColumn struct {
 	name    string
 	notnull bool
-	table   *Table
+	table   Table
 }
 
 func (m *baseColumn) Name() string {
@@ -77,16 +77,16 @@ func (m *baseColumn) NotNull() bool {
 	return m.notnull
 }
 
-func (m *baseColumn) TableName() *Table {
+func (m *baseColumn) TableName() Table {
 	return m.table
 }
 
-func (m *baseColumn) setTableName(table *Table) {
+func (m *baseColumn) setTableName(table Table) {
 	m.table = table
 }
 
 func (m *baseColumn) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.table.name)+"."+dialect.QuoteField(m.name), nil)
+	bldr.Append(dialect.QuoteField(m.table.Name())+"."+dialect.QuoteField(m.name), nil)
 	return
 }
 
