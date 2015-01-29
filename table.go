@@ -75,7 +75,6 @@ func (m *table) Name() string {
 }
 
 func (m *table) Columns() []Column {
-
 	return m.columns
 }
 
