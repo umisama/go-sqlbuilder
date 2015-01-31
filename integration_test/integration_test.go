@@ -9,6 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	sb "github.com/umisama/go-sqlbuilder"
+	_ "github.com/ziutek/mymysql/godrv"
 )
 
 var table1 sb.Table
@@ -24,6 +25,7 @@ func TestMain(m *testing.M) {
 	}
 	var cases = []testcase{
 		{"sqlite", sb.SqliteDialect{}, "sqlite3", ":memory:"},
+		{"mymysql", sb.MysqlDialect{}, "mymysql", "go_sqlbuilder_test/root/"},
 	}
 
 	table1, _ = sb.NewTable(
@@ -35,10 +37,21 @@ func TestMain(m *testing.M) {
 	for _, c := range cases {
 		fmt.Println("START unit test for", c.name)
 
-		db, _ = sql.Open(c.driver, c.dsn)
+		var err error
+		db, err = sql.Open(c.driver, c.dsn)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		sb.SetDialect(c.dialect)
-		db.Exec(`CREATE TABLE "TABLE_A" ("id" integer primary key, "value" integer)`)
+		_, err = db.Exec("CREATE TABLE `TABLE_A` (`id` integer primary key, `value` integer)")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		results[c.name] = m.Run()
+		_, err = db.Exec("DROP TABLE `TABLE_A`")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 
 	for _, v := range results {
