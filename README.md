@@ -1,4 +1,5 @@
 # umisama/go-sqlbuilder
+[![Build Status](https://travis-ci.org/umisama/go-sqlbuilder.svg?branch=master)](https://travis-ci.org/umisama/go-sqlbuilder)
 
 ## Status
 development...
