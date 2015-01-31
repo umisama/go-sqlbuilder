@@ -91,7 +91,7 @@ func (b *SelectStatement) ToSql() (string, []interface{}, error) {
 		bldr.Append("DISTINCT ")
 	}
 
-	bldr.AppendItems(b.columns, " ")
+	bldr.AppendItems(b.columns, ", ")
 
 	// FROM
 	if b.from != nil {

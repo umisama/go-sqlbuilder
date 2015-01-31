@@ -1,11 +1,12 @@
 package sqlbuilder
 
 import (
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSelect(t *testing.T) {
+	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
 		IntColumn("id", false),
@@ -27,18 +28,12 @@ func TestSelect(t *testing.T) {
 		Limit(10).
 		Offset(20).
 		ToSql()
-	if query != `SELECT DISTINCT "TABLE_A"."test1" "TABLE_A"."test2" `+
+	a.Equal(`SELECT DISTINCT "TABLE_A"."test1", "TABLE_A"."test2" `+
 		`FROM "TABLE_A" WHERE "TABLE_A"."id"=? AND "TABLE_A"."test1"=? `+
 		`GROUP BY "TABLE_A"."id" HAVING "TABLE_A"."id"=? ORDER BY "TABLE_A"."id" ASC `+
-		`LIMIT 10 OFFSET 20;` {
-		t.Error("got", query)
-	}
-	if !reflect.DeepEqual(attrs, []interface{}{int64(1), int64(2), int64(1)}) {
-		t.Error("got", attrs)
-	}
-	if err != nil {
-		t.Error("got", err)
-	}
+		`LIMIT 10 OFFSET 20;`, query)
+	a.Equal([]interface{}{int64(1), int64(2), int64(1)}, attrs)
+	a.Nil(err)
 }
 
 func BenchmarkSelect(b *testing.B) {

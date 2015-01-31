@@ -1,7 +1,7 @@
 package sqlbuilder
 
 type InsertStatement struct {
-	columns []serializable
+	columns []serializableForColumnList
 	values  []serializable
 	into    Table
 }
@@ -13,7 +13,7 @@ func Insert(into Table) *InsertStatement {
 }
 
 func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
-	sl := make([]serializable, len(columns))
+	sl := make([]serializableForColumnList, len(columns))
 	for i := range columns {
 		sl[i] = columns[i]
 	}
@@ -33,21 +33,21 @@ func (b *InsertStatement) Values(values ...Literal) *InsertStatement {
 func (b *InsertStatement) ToSql() (string, []interface{}, error) {
 	bldr := newBuilder()
 
-	// INSERT (COLUMN)
-	bldr.Append("INSERT ")
+	// INSERT
+	bldr.Append("INSERT")
+
+	// INTO Table(COLUMN)
+	bldr.Append(" INTO ")
+	bldr.AppendItem(b.into)
 	if len(b.columns) != 0 {
-		bldr.Append("( ")
-		bldr.AppendItems(b.columns, " ")
+		bldr.Append(" ( ")
+		bldr.AppendItemsForColumnList(b.columns, ", ")
 		bldr.Append(" )")
 	}
 
-	// INTO Table
-	bldr.Append(" INTO ")
-	bldr.AppendItem(b.into)
-
 	// VALUES
 	bldr.Append(" VALUES ( ")
-	bldr.AppendItems(b.values, " ")
+	bldr.AppendItems(b.values, ", ")
 	bldr.Append(" )")
 
 	bldr.Append(dialect.QuerySuffix())

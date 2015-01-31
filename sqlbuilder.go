@@ -10,6 +10,10 @@ type serializable interface {
 	serialize(b *builder)
 }
 
+type serializableForColumnList interface {
+	serializeForColumnList(b *builder)
+}
+
 type Clause interface {
 	serializable
 }
@@ -24,5 +28,5 @@ func SetDialect(opt Dialect) {
 
 func init() {
 	// initial setup
-	SetDialect(&sqliteDialect{})
+	SetDialect(SqliteDialect{})
 }

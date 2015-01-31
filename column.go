@@ -2,6 +2,7 @@ package sqlbuilder
 
 type Column interface {
 	serializable
+	serializableForColumnList
 
 	Name() string
 	NotNull() bool
@@ -86,7 +87,12 @@ func (m *baseColumn) setTableName(table Table) {
 }
 
 func (m *baseColumn) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
+	bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.Name()))
+	return
+}
+
+func (m *baseColumn) serializeForColumnList(bldr *builder) {
+	bldr.Append(dialect.QuoteField(m.Name()))
 	return
 }
 
