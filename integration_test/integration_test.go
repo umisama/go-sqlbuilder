@@ -1,4 +1,4 @@
-package sqlbuilder_integration_test
+package sqlbuilder_integration
 
 import (
 	"database/sql"
