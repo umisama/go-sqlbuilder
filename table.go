@@ -56,7 +56,7 @@ func NewTable(name string, columns ...Column) (Table, error) {
 }
 
 func (m *table) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.name), nil)
+	bldr.Append(dialect.QuoteField(m.name))
 	return
 }
 
@@ -170,16 +170,16 @@ func (m *joinTable) serialize(bldr *builder) {
 	bldr.AppendItem(m.left)
 	switch m.typ {
 	case inner_join:
-		bldr.Append(" INNER JOIN ", nil)
+		bldr.Append(" INNER JOIN ")
 	case left_outer_join:
-		bldr.Append(" LEFT OUTER JOIN ", nil)
+		bldr.Append(" LEFT OUTER JOIN ")
 	case right_outer_join:
-		bldr.Append(" RIGHT OUTER JOIN ", nil)
+		bldr.Append(" RIGHT OUTER JOIN ")
 	case full_outer_join:
-		bldr.Append(" FULL OUTER JOIN ", nil)
+		bldr.Append(" FULL OUTER JOIN ")
 	}
 	bldr.AppendItem(m.right)
-	bldr.Append(" ON ", nil)
+	bldr.Append(" ON ")
 	bldr.AppendItem(m.on)
 	return
 }

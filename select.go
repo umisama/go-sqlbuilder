@@ -6,20 +6,20 @@ import (
 )
 
 type SelectStatement struct {
-	columns    []Expression
+	columns    []serializable
 	from       Table
 	where      Condition
 	distinct   bool
-	groupBy    []Expression
+	groupBy    []serializable
 	orderByAsc string
-	orderBy    []Expression
+	orderBy    []serializable
 	limit      int
 	offset     int
 	having     Condition
 }
 
 func Select(columns ...Column) *SelectStatement {
-	ex_column := make([]Expression, len(columns))
+	ex_column := make([]serializable, len(columns))
 	for i := range columns {
 		ex_column[i] = columns[i]
 	}
@@ -44,7 +44,7 @@ func (b *SelectStatement) Distinct() *SelectStatement {
 }
 
 func (b *SelectStatement) GroupBy(columns ...Column) *SelectStatement {
-	ex_column := make([]Expression, len(columns))
+	ex_column := make([]serializable, len(columns))
 	for i := range columns {
 		ex_column[i] = columns[i]
 	}
@@ -58,7 +58,7 @@ func (b *SelectStatement) Having(cond Condition) *SelectStatement {
 }
 
 func (b *SelectStatement) OrderBy(desc bool, columns ...Column) *SelectStatement {
-	ex_column := make([]Expression, len(columns))
+	ex_column := make([]serializable, len(columns))
 	for i := range columns {
 		ex_column[i] = columns[i]
 	}
@@ -86,16 +86,16 @@ func (b *SelectStatement) ToSql() (string, []interface{}, error) {
 	bldr := newBuilder()
 
 	// SELECT COLUMN
-	bldr.Append("SELECT ", nil)
+	bldr.Append("SELECT ")
 	if b.distinct {
-		bldr.Append("DISTINCT ", nil)
+		bldr.Append("DISTINCT ")
 	}
 
-	bldr.AppendExpressions(b.columns, " ")
+	bldr.AppendItems(b.columns, " ")
 
 	// FROM
 	if b.from != nil {
-		bldr.Append(" FROM ", nil)
+		bldr.Append(" FROM ")
 		bldr.AppendItem(b.from)
 	} else {
 		bldr.SetError(errors.New("from is not found"))
@@ -103,14 +103,14 @@ func (b *SelectStatement) ToSql() (string, []interface{}, error) {
 
 	// WHERE
 	if b.where != nil {
-		bldr.Append(" WHERE ", nil)
+		bldr.Append(" WHERE ")
 		bldr.AppendItem(b.where)
 	}
 
 	// GROUP BY
 	if b.groupBy != nil {
-		bldr.Append(" GROUP BY ", nil)
-		bldr.AppendExpressions(b.groupBy, ",")
+		bldr.Append(" GROUP BY ")
+		bldr.AppendItems(b.groupBy, ",")
 	}
 
 	// HAVING
@@ -118,29 +118,29 @@ func (b *SelectStatement) ToSql() (string, []interface{}, error) {
 		if b.groupBy == nil {
 			bldr.SetError(errors.New("GROUP BY by clause is not found"))
 		}
-		bldr.Append(" HAVING ", nil)
+		bldr.Append(" HAVING ")
 		bldr.AppendItem(b.having)
 	}
 
 	// ORDER BY
 	if b.orderBy != nil {
-		bldr.Append(" ORDER BY ", nil)
-		bldr.AppendExpressions(b.orderBy, ",")
-		bldr.Append(b.orderByAsc, nil)
+		bldr.Append(" ORDER BY ")
+		bldr.AppendItems(b.orderBy, ",")
+		bldr.Append(b.orderByAsc)
 	}
 
 	// LIMIT
 	if b.limit != 0 {
-		bldr.Append(" LIMIT ", nil)
-		bldr.Append(strconv.Itoa(b.limit), nil)
+		bldr.Append(" LIMIT ")
+		bldr.Append(strconv.Itoa(b.limit))
 	}
 
 	// Offset
 	if b.offset != 0 {
-		bldr.Append(" OFFSET ", nil)
-		bldr.Append(strconv.Itoa(b.offset), nil)
+		bldr.Append(" OFFSET ")
+		bldr.Append(strconv.Itoa(b.offset))
 	}
 
-	bldr.Append(dialect.QuerySuffix(), nil)
+	bldr.Append(dialect.QuerySuffix())
 	return bldr.Query(), bldr.Args(), bldr.Err()
 }

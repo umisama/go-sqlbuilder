@@ -47,31 +47,21 @@ func (b *builder) SetError(err error) {
 	return
 }
 
-func (b *builder) Append(query string, args []interface{}) {
+func (b *builder) Append(query string) {
 	if b.err != nil {
 		return
 	}
 
 	b.query.WriteString(query)
-	if args != nil {
-		b.args = append(b.args, args...)
-	}
 }
 
-func (b *builder) AppendExpressions(parts []Expression, sep string) {
+func (b *builder) AppendValue(val interface{}) {
 	if b.err != nil {
 		return
 	}
 
-	first := true
-	for _, part := range parts {
-		if first {
-			first = false
-		} else {
-			b.Append(sep, nil)
-		}
-		part.serialize(b)
-	}
+	b.query.WriteString(dialect.BindVar(len(b.args) + 1))
+	b.args = append(b.args, val)
 	return
 }
 
@@ -85,7 +75,7 @@ func (b *builder) AppendItems(parts []serializable, sep string) {
 		if first {
 			first = false
 		} else {
-			b.Append(sep, nil)
+			b.Append(sep)
 		}
 		part.serialize(b)
 	}

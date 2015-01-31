@@ -15,7 +15,7 @@ func (c *connectCondition) serialize(bldr *builder) {
 		if first {
 			first = false
 		} else {
-			bldr.Append(" "+c.connector+" ", nil)
+			bldr.Append(" " + c.connector + " ")
 		}
 		cond.serialize(bldr)
 	}
@@ -108,7 +108,7 @@ func Between(left, low, high Expression) Condition {
 
 func (c *binaryOperationCondition) serialize(bldr *builder) {
 	bldr.AppendItem(c.left)
-	bldr.Append(c.operator, nil)
+	bldr.Append(c.operator)
 	bldr.AppendItem(c.right)
 	return
 }
@@ -121,9 +121,9 @@ type betweenCondition struct {
 
 func (c *betweenCondition) serialize(bldr *builder) {
 	bldr.AppendItem(c.left)
-	bldr.Append(" BETWEEN ", nil)
+	bldr.Append(" BETWEEN ")
 	bldr.AppendItem(c.lower)
-	bldr.Append(" AND ", nil)
+	bldr.Append(" AND ")
 	bldr.AppendItem(c.higher)
 	return
 }

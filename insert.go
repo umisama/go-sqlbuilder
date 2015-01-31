@@ -34,22 +34,22 @@ func (b *InsertStatement) ToSql() (string, []interface{}, error) {
 	bldr := newBuilder()
 
 	// INSERT (COLUMN)
-	bldr.Append("INSERT ", nil)
+	bldr.Append("INSERT ")
 	if len(b.columns) != 0 {
-		bldr.Append("( ", nil)
+		bldr.Append("( ")
 		bldr.AppendItems(b.columns, " ")
-		bldr.Append(" )", nil)
+		bldr.Append(" )")
 	}
 
 	// INTO Table
-	bldr.Append(" INTO ", nil)
+	bldr.Append(" INTO ")
 	bldr.AppendItem(b.into)
 
 	// VALUES
-	bldr.Append(" VALUES ( ", nil)
+	bldr.Append(" VALUES ( ")
 	bldr.AppendItems(b.values, " ")
-	bldr.Append(" )", nil)
+	bldr.Append(" )")
 
-	bldr.Append(dialect.QuerySuffix(), nil)
+	bldr.Append(dialect.QuerySuffix())
 	return bldr.Query(), bldr.Args(), bldr.Err()
 }

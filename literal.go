@@ -34,9 +34,9 @@ func (l *literal) serialize(bldr *builder) {
 	}
 
 	if l.placeholder {
-		bldr.Append("?", []interface{}{val})
+		bldr.AppendValue(val)
 	} else {
-		bldr.Append(l.string(), nil)
+		bldr.Append(l.string())
 	}
 	return
 }

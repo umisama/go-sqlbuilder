@@ -86,7 +86,7 @@ func (m *baseColumn) setTableName(table Table) {
 }
 
 func (m *baseColumn) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.table.Name())+"."+dialect.QuoteField(m.name), nil)
+	bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
 	return
 }
 
