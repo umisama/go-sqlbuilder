@@ -1,0 +1,9 @@
+language: go
+
+go:
+  - 1.4
+  - tip
+
+before_script:
+  - mysql -e 'create database go_sqlbuilder_test;'
+
