@@ -18,13 +18,13 @@ func TestSelect(t *testing.T) {
 		From(table1).
 		Where(
 		And(
-			Eq(table1.C("id"), L(1)),
-			Eq(table1.C("test1"), L(2)),
+			table1.C("id").Eq(1),
+			table1.C("test1").Eq(2),
 		)).
 		Distinct().
 		OrderBy(false, table1.C("id")).
 		GroupBy(table1.C("id")).
-		Having(Eq(table1.C("id"), L(1))).
+		Having(table1.C("id").Eq(1)).
 		Limit(10).
 		Offset(20).
 		ToSql()
@@ -49,8 +49,8 @@ func BenchmarkSelect(b *testing.B) {
 			From(table1).
 			Where(
 			And(
-				Eq(table1.C("id"), L(1)),
-				Eq(table1.C("test1"), L(2)),
+				table1.C("id").Eq(1),
+				table1.C("test1").Eq(2),
 			)).
 			ToSql()
 	}

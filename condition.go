@@ -1,5 +1,7 @@
 package sqlbuilder
 
+import "fmt"
+
 type Condition interface {
 	serializable
 }
@@ -37,72 +39,46 @@ func Or(conds ...Condition) Condition {
 }
 
 type binaryOperationCondition struct {
-	left     Expression
-	right    Expression
+	left     serializable
+	right    serializable
 	operator string
+	err      error
 }
 
-func Eq(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: "=",
+func newBinaryOperationCondition(left, right interface{}, operator string) *binaryOperationCondition {
+	cond := &binaryOperationCondition{
+		operator: operator,
 	}
-}
-
-func NotEq(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: "<>",
+	column_exist := false
+	switch t := left.(type) {
+	case Column:
+		column_exist = true
+		cond.left = t
+	default:
+		cond.left = L(t)
 	}
-}
-
-func Gt(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: ">",
+	switch t := right.(type) {
+	case Column:
+		column_exist = true
+		cond.right = t
+	default:
+		cond.right = L(t)
 	}
-}
-
-func Gte(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: ">=",
+	if !column_exist {
+		cond.err = fmt.Errorf("hello world")
 	}
+
+	return cond
 }
 
-func Lt(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: "<",
-	}
-}
+func newBetweenCondition(left Column, low, high interface{}) Condition {
+	low_literal := L(low)
+	high_literal := L(high)
 
-func Lte(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: "<=",
-	}
-}
-
-func Like(left, right Expression) Condition {
-	return &binaryOperationCondition{
-		left:     left,
-		right:    right,
-		operator: " LIKE ",
-	}
-}
-
-func Between(left, low, high Expression) Condition {
 	return &betweenCondition{
 		left:   left,
-		lower:  low,
-		higher: high,
+		lower:  low_literal,
+		higher: high_literal,
 	}
 }
 
@@ -114,9 +90,9 @@ func (c *binaryOperationCondition) serialize(bldr *builder) {
 }
 
 type betweenCondition struct {
-	left   Expression
-	lower  Expression
-	higher Expression
+	left   serializable
+	lower  serializable
+	higher serializable
 }
 
 func (c *betweenCondition) serialize(bldr *builder) {

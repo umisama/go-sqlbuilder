@@ -22,47 +22,42 @@ func TestBinaryCondition(t *testing.T) {
 
 	var cases = []testcase{
 		{
-			Eq(table1.C("id"), table1.C("test1")),
+			table1.C("id").Eq(table1.C("test1")),
 			`"TABLE_A"."id"="TABLE_A"."test1"`,
 			[]interface{}{},
 			nil,
 		}, {
-			Eq(table1.C("id"), L(1)),
+			table1.C("id").Eq(1),
 			`"TABLE_A"."id"=?`,
 			[]interface{}{int64(1)},
 			nil,
 		}, {
-			NotEq(table1.C("id"), L(1)),
+			table1.C("id").NotEq(1),
 			`"TABLE_A"."id"<>?`,
 			[]interface{}{int64(1)},
 			nil,
 		}, {
-			Gt(table1.C("id"), L(1)),
+			table1.C("id").Gt(1),
 			`"TABLE_A"."id">?`,
 			[]interface{}{int64(1)},
 			nil,
 		}, {
-			Gte(table1.C("id"), L(1)),
+			table1.C("id").GtEq(1),
 			`"TABLE_A"."id">=?`,
 			[]interface{}{int64(1)},
 			nil,
 		}, {
-			Lt(table1.C("id"), L(1)),
+			table1.C("id").Lt(1),
 			`"TABLE_A"."id"<?`,
 			[]interface{}{int64(1)},
 			nil,
 		}, {
-			Lte(table1.C("id"), L(1)),
+			table1.C("id").LtEq(1),
 			`"TABLE_A"."id"<=?`,
 			[]interface{}{int64(1)},
 			nil,
 		}, {
-			Lte(table1.C("id"), L(1)),
-			`"TABLE_A"."id"<=?`,
-			[]interface{}{int64(1)},
-			nil,
-		}, {
-			Like(table1.C("id"), L("hoge")),
+			table1.C("id").Like("hoge"),
 			`"TABLE_A"."id" LIKE ?`,
 			[]interface{}{"hoge"},
 			nil,
@@ -92,9 +87,9 @@ func TestAndCondition(t *testing.T) {
 		IntColumn("test1", false),
 		IntColumn("test2", false),
 	)
-	eq1 := Eq(table1.C("id"), table1.C("test1"))
-	eq2 := Eq(table1.C("id"), L(1))
-	eq3 := Eq(table1.C("id"), L(2))
+	eq1 := table1.C("id").Eq(table1.C("test1"))
+	eq2 := table1.C("id").Eq(1)
+	eq3 := table1.C("id").Eq(2)
 
 	and := And(eq1, eq2, eq3)
 
@@ -118,8 +113,8 @@ func TestOrCondition(t *testing.T) {
 		IntColumn("test1", false),
 		IntColumn("test2", false),
 	)
-	eq1 := Eq(table1.C("id"), table1.C("test1"))
-	eq2 := Eq(table1.C("id"), L(1))
+	eq1 := table1.C("id").Eq(table1.C("test1"))
+	eq2 := table1.C("id").Eq(1)
 
 	or := Or(eq1, eq2)
 

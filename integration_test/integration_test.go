@@ -101,11 +101,9 @@ func TestInsert(t *testing.T) {
 func TestSelect(t *testing.T) {
 	a := assert.New(t)
 	query, args, err := sb.Select(table1.C("id"), table1.C("value")).
-		From(table1).Where(
-		sb.Eq(
-			table1.C("id"), sb.L(1),
-		),
-	).Limit(1).OrderBy(false, table1.C("id")).ToSql()
+		From(table1).
+		Where(table1.C("id").Eq(1)).
+		Limit(1).OrderBy(false, table1.C("id")).ToSql()
 
 	rows, err := db.Query(query, args...)
 	a.Nil(err)

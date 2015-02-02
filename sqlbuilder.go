@@ -14,14 +14,6 @@ type serializableForColumnList interface {
 	serializeForColumnList(b *builder)
 }
 
-type Clause interface {
-	serializable
-}
-
-type Expression interface {
-	serializable
-}
-
 func SetDialect(opt Dialect) {
 	dialect = opt
 }

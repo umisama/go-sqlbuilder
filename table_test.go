@@ -40,7 +40,7 @@ func TestJoinTable(t *testing.T) {
 		IntColumn("id", true),
 	)
 
-	joinedTable := l_table.InnerJoin(r_table, Eq(l_table.C("right_id"), r_table.C("id"))).InnerJoin(rr_table, Eq(l_table.C("right_id"), rr_table.C("id")))
+	joinedTable := l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id"))).InnerJoin(rr_table, l_table.C("right_id").Eq(rr_table.C("id")))
 	joinedTable.serialize(b)
 	a.Equal(b.Query(), `"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id" INNER JOIN "RIGHTRIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHTRIGHT_TABLE"."id"`)
 	a.Nil(b.Err())

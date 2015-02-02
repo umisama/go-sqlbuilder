@@ -38,19 +38,20 @@ type Table interface {
 	FullOuterJoin(Table, Condition) Table
 }
 
-func NewTable(name string, columns ...Column) (Table, error) {
-	if len(columns) == 0 {
+func NewTable(name string, column_configs ...ColumnConfig) (Table, error) {
+	if len(column_configs) == 0 {
 		return nil, errors.New("column is needed")
 	}
 
 	t := &table{
-		name:    name,
-		columns: columns,
+		name: name,
 	}
 
-	for i := range t.columns {
-		t.columns[i].setTableName(t)
+	columns := make([]Column, 0, len(column_configs))
+	for _, column_config := range column_configs {
+		columns = append(columns, column_config.toColumn(t))
 	}
+	t.columns = columns
 
 	return t, nil
 }
@@ -62,7 +63,7 @@ func (m *table) serialize(bldr *builder) {
 
 func (m *table) C(name string) Column {
 	for _, column := range m.columns {
-		if column.Name() == name {
+		if column.column_name() == name {
 			return column
 		}
 	}
