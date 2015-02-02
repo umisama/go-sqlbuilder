@@ -9,24 +9,24 @@ import (
 	"time"
 )
 
-type Literal interface {
+type literal interface {
 	serializable
 	Raw() interface{}
 }
 
-type literal struct {
+type literalImpl struct {
 	raw         interface{}
 	placeholder bool
 }
 
-func L(v interface{}) Literal {
-	return &literal{
+func toLiteral(v interface{}) literal {
+	return &literalImpl{
 		raw:         v,
 		placeholder: true,
 	}
 }
 
-func (l *literal) serialize(bldr *builder) {
+func (l *literalImpl) serialize(bldr *builder) {
 	val, err := l.converted()
 	if err != nil {
 		bldr.SetError(err)
@@ -41,7 +41,7 @@ func (l *literal) serialize(bldr *builder) {
 	return
 }
 
-func (l *literal) converted() (interface{}, error) {
+func (l *literalImpl) converted() (interface{}, error) {
 	switch t := l.raw.(type) {
 	case int, int8, int16, int32, int64:
 		return reflect.ValueOf(t).Int(), nil
@@ -64,7 +64,7 @@ func (l *literal) converted() (interface{}, error) {
 	return nil, errors.New("sqlbuilder: unsupported type")
 }
 
-func (l *literal) string() string {
+func (l *literalImpl) string() string {
 	switch t := l.raw.(type) {
 	case int64:
 		return strconv.FormatInt(t, 10)
@@ -82,6 +82,6 @@ func (l *literal) string() string {
 	return ""
 }
 
-func (l *literal) Raw() interface{} {
+func (l *literalImpl) Raw() interface{} {
 	return l.raw
 }

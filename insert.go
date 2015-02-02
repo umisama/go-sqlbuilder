@@ -21,10 +21,10 @@ func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
 	return b
 }
 
-func (b *InsertStatement) Values(values ...Literal) *InsertStatement {
+func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	sl := make([]serializable, len(values))
 	for i := range values {
-		sl[i] = values[i]
+		sl[i] = toLiteral(values[i])
 	}
 	b.values = sl
 	return b

@@ -68,7 +68,7 @@ func TestInsert(t *testing.T) {
 	// data 1
 	query, args, err := sb.Insert(table1).
 		Columns(table1.C("id"), table1.C("value")).
-		Values(sb.L(1), sb.L(10)).
+		Values(1, 10).
 		ToSql()
 	a.Nil(err)
 
@@ -84,7 +84,7 @@ func TestInsert(t *testing.T) {
 	// data 2
 	query, args, err = sb.Insert(table1).
 		Columns(table1.C("id"), table1.C("value")).
-		Values(sb.L(2), sb.L(20)).
+		Values(2, 20).
 		ToSql()
 	a.Nil(err)
 

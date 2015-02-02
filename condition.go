@@ -55,14 +55,14 @@ func newBinaryOperationCondition(left, right interface{}, operator string) *bina
 		column_exist = true
 		cond.left = t
 	default:
-		cond.left = L(t)
+		cond.left = toLiteral(t)
 	}
 	switch t := right.(type) {
 	case Column:
 		column_exist = true
 		cond.right = t
 	default:
-		cond.right = L(t)
+		cond.right = toLiteral(t)
 	}
 	if !column_exist {
 		cond.err = fmt.Errorf("hello world")
@@ -72,8 +72,8 @@ func newBinaryOperationCondition(left, right interface{}, operator string) *bina
 }
 
 func newBetweenCondition(left Column, low, high interface{}) Condition {
-	low_literal := L(low)
-	high_literal := L(high)
+	low_literal := toLiteral(low)
+	high_literal := toLiteral(high)
 
 	return &betweenCondition{
 		left:   left,
