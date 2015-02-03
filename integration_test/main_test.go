@@ -42,12 +42,6 @@ func TestMain(m *testing.M) {
 			fmt.Println(err.Error())
 		}
 		sb.SetDialect(c.dialect)
-
-		results[c.name] = m.Run()
-		_, err = db.Exec("DROP TABLE `TABLE_A`")
-		if err != nil {
-			fmt.Println(err.Error())
-		}
 	}
 
 	for _, v := range results {

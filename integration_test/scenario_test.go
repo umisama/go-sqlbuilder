@@ -61,6 +61,7 @@ func TestSelect(t *testing.T) {
 		From(table1).
 		Where(table1.C("id").Eq(1)).
 		Limit(1).OrderBy(false, table1.C("id")).ToSql()
+	a.Nil(err)
 
 	rows, err := db.Query(query, args...)
 	a.Nil(err)
@@ -80,4 +81,13 @@ func TestSelect(t *testing.T) {
 
 		rows.Close()
 	}
+}
+
+func TestDropTable(t *testing.T) {
+	a := assert.New(t)
+	query, args, err := sb.DropTable(table1).ToSql()
+	a.Nil(err)
+
+	_, err = db.Exec(query, args...)
+	a.Nil(err)
 }
