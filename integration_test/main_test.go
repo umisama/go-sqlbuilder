@@ -42,6 +42,8 @@ func TestMain(m *testing.M) {
 			fmt.Println(err.Error())
 		}
 		sb.SetDialect(c.dialect)
+
+		results[c.name] = m.Run()
 	}
 
 	for _, v := range results {

@@ -83,6 +83,15 @@ func TestSelect(t *testing.T) {
 	}
 }
 
+func TestDelete(t *testing.T) {
+	a := assert.New(t)
+	query, args, err := sb.Delete(table1).Where(table1.C("id").Eq(0)).ToSql()
+	a.Nil(err)
+
+	_, err = db.Exec(query, args...)
+	a.Nil(err)
+}
+
 func TestDropTable(t *testing.T) {
 	a := assert.New(t)
 	query, args, err := sb.DropTable(table1).ToSql()
