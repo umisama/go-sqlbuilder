@@ -31,8 +31,8 @@ func TestSelect(t *testing.T) {
 	a.Equal(`SELECT DISTINCT "TABLE_A"."test1", "TABLE_A"."test2" `+
 		`FROM "TABLE_A" WHERE "TABLE_A"."id"=? AND "TABLE_A"."test1"=? `+
 		`GROUP BY "TABLE_A"."id" HAVING "TABLE_A"."id"=? ORDER BY "TABLE_A"."id" ASC `+
-		`LIMIT 10 OFFSET 20;`, query)
-	a.Equal([]interface{}{int64(1), int64(2), int64(1)}, attrs)
+		`LIMIT ? OFFSET ?;`, query)
+	a.Equal([]interface{}{1, 2, 1, 10, 20}, attrs)
 	a.Nil(err)
 }
 

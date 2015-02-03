@@ -22,7 +22,7 @@ func TestUpdate(t *testing.T) {
 		Limit(1).
 		Offset(2).
 		ToSql()
-	a.Equal(`UPDATE "TABLE_A" SET "test1"=?, "test2"=? WHERE "TABLE_A"."id"=? ORDER BY "TABLE_A"."test1" DESC LIMIT 1 OFFSET 2;`, query)
-	a.Equal([]interface{}{int64(10), int64(20), int64(1)}, attrs)
+	a.Equal(`UPDATE "TABLE_A" SET "test1"=?, "test2"=? WHERE "TABLE_A"."id"=? ORDER BY "TABLE_A"."test1" DESC LIMIT ? OFFSET ?;`, query)
+	a.Equal([]interface{}{10, 20, 1, 1, 2}, attrs)
 	a.Nil(err)
 }

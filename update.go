@@ -1,7 +1,5 @@
 package sqlbuilder
 
-import "strconv"
-
 type UpdateStatement struct {
 	table      Table
 	set        []serializable
@@ -79,13 +77,13 @@ func (b *UpdateStatement) ToSql() (string, []interface{}, error) {
 	// LIMIT
 	if b.limit != 0 {
 		bldr.Append(" LIMIT ")
-		bldr.Append(strconv.Itoa(b.limit))
+		bldr.AppendValue(b.limit)
 	}
 
 	// Offset
 	if b.offset != 0 {
 		bldr.Append(" OFFSET ")
-		bldr.Append(strconv.Itoa(b.offset))
+		bldr.AppendValue(b.offset)
 	}
 
 	bldr.Append(dialect.QuerySuffix())
