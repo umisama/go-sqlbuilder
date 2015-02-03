@@ -25,7 +25,6 @@ type ColumnList []Column
 
 type Column interface {
 	serializable
-	serializableForColumnList
 
 	column_name() string
 	not_null() bool
@@ -94,11 +93,6 @@ func (m *columnImpl) config() ColumnConfig {
 
 func (m *columnImpl) serialize(bldr *builder) {
 	bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
-	return
-}
-
-func (m *columnImpl) serializeForColumnList(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.name))
 	return
 }
 
@@ -180,4 +174,17 @@ func (left *columnImpl) Like(right string) Condition {
 
 func (left *columnImpl) Between(lower, higher interface{}) Condition {
 	return newBetweenCondition(left, lower, higher)
+}
+
+func (b ColumnList) serialize(bldr *builder) {
+	first := true
+	for _, column := range b {
+		if first {
+			first = false
+		} else {
+			bldr.Append(", ")
+		}
+		bldr.Append(dialect.QuoteField(column.column_name()))
+	}
+	return
 }

@@ -1,7 +1,7 @@
 package sqlbuilder
 
 type InsertStatement struct {
-	columns []serializableForColumnList
+	columns ColumnList
 	values  []serializable
 	into    Table
 }
@@ -13,11 +13,7 @@ func Insert(into Table) *InsertStatement {
 }
 
 func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
-	sl := make([]serializableForColumnList, len(columns))
-	for i := range columns {
-		sl[i] = columns[i]
-	}
-	b.columns = sl
+	b.columns = ColumnList(columns)
 	return b
 }
 
@@ -41,7 +37,7 @@ func (b *InsertStatement) ToSql() (string, []interface{}, error) {
 	bldr.AppendItem(b.into)
 	if len(b.columns) != 0 {
 		bldr.Append(" ( ")
-		bldr.AppendItemsForColumnList(b.columns, ", ")
+		bldr.AppendItem(b.columns)
 		bldr.Append(" )")
 	}
 

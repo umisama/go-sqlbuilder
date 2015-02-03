@@ -82,23 +82,6 @@ func (b *builder) AppendItems(parts []serializable, sep string) {
 	return
 }
 
-func (b *builder) AppendItemsForColumnList(parts []serializableForColumnList, sep string) {
-	if b.err != nil {
-		return
-	}
-
-	first := true
-	for _, part := range parts {
-		if first {
-			first = false
-		} else {
-			b.Append(sep)
-		}
-		part.serializeForColumnList(b)
-	}
-	return
-}
-
 func (b *builder) AppendItem(part serializable) {
 	if b.err != nil {
 		return

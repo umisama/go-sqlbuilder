@@ -67,6 +67,7 @@ func TestSelect(t *testing.T) {
 	a.Nil(err)
 
 	if a.NotNil(rows) {
+		defer rows.Close()
 		count := 0
 		for rows.Next() {
 			id, value := 0, 0
@@ -80,6 +81,23 @@ func TestSelect(t *testing.T) {
 		a.Equal(1, count)
 
 		rows.Close()
+	}
+}
+
+func TestSqlFunction(t *testing.T) {
+	a := assert.New(t)
+	query, args, err := sb.Select(sb.Func("count", table1.C("id"))).From(table1).ToSql()
+	a.Nil(err)
+
+	rows, err := db.Query(query, args...)
+	a.Nil(err)
+	if a.NotNil(rows) {
+		defer rows.Close()
+		rows.Next()
+		value := 0
+		err := rows.Scan(&value)
+		a.Nil(err)
+		a.Equal(2, value)
 	}
 }
 

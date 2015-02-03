@@ -10,10 +10,6 @@ type serializable interface {
 	serialize(b *builder)
 }
 
-type serializableForColumnList interface {
-	serializeForColumnList(b *builder)
-}
-
 func SetDialect(opt Dialect) {
 	dialect = opt
 }
