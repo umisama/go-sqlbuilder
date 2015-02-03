@@ -9,6 +9,16 @@ import (
 	_ "github.com/ziutek/mymysql/godrv"
 )
 
+func TestCreateTable(t *testing.T) {
+	a := assert.New(t)
+
+	query, args, err := sb.CreateTable(table1).ToSql()
+	a.Nil(err)
+
+	_, err = db.Exec(query, args...)
+	a.Nil(err)
+}
+
 func TestInsert(t *testing.T) {
 	a := assert.New(t)
 

@@ -42,10 +42,7 @@ func TestMain(m *testing.M) {
 			fmt.Println(err.Error())
 		}
 		sb.SetDialect(c.dialect)
-		_, err = db.Exec("CREATE TABLE `TABLE_A` (`id` integer primary key, `value` integer)")
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+
 		results[c.name] = m.Run()
 		_, err = db.Exec("DROP TABLE `TABLE_A`")
 		if err != nil {

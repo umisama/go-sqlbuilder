@@ -1,8 +1,27 @@
 package sqlbuilder
 
 type ColumnConfig interface {
+	serializable
+
 	toColumn(Table) Column
+	Name() string
+	NotNull() bool
+	Type() columnType
+	Options() interface{}
 }
+
+type columnType int
+
+const (
+	columnTypeInt columnType = iota
+	columnTypeString
+	columnTypeDate
+	columnTypeFloat
+	columnTypeBool
+	columnTypeBytes
+)
+
+type ColumnList []Column
 
 type Column interface {
 	serializable
@@ -10,6 +29,7 @@ type Column interface {
 
 	column_name() string
 	not_null() bool
+	config() ColumnConfig
 
 	Eq(right interface{}) Condition
 	NotEq(right interface{}) Condition
@@ -24,12 +44,35 @@ type Column interface {
 type columnConfigImpl struct {
 	name    string
 	notnull bool
+	typ     columnType
+	opt     interface{}
+}
+
+func (c *columnConfigImpl) Name() string {
+	return c.name
+}
+
+func (c *columnConfigImpl) NotNull() bool {
+	return c.notnull
+}
+
+func (c *columnConfigImpl) Type() columnType {
+	return c.typ
+}
+
+func (c *columnConfigImpl) Options() interface{} {
+	return c.opt
 }
 
 func (m *columnConfigImpl) toColumn(table Table) Column {
 	return &columnImpl{
 		m, table,
 	}
+}
+
+func (m *columnConfigImpl) serialize(bldr *builder) {
+	bldr.Append(dialect.QuoteField(m.name))
+	return
 }
 
 type columnImpl struct {
@@ -43,6 +86,10 @@ func (m *columnImpl) column_name() string {
 
 func (m *columnImpl) not_null() bool {
 	return m.notnull
+}
+
+func (m *columnImpl) config() ColumnConfig {
+	return m.columnConfigImpl
 }
 
 func (m *columnImpl) serialize(bldr *builder) {
@@ -59,6 +106,7 @@ func IntColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
 		notnull: notnull,
+		typ:     columnTypeInt,
 	}
 }
 
@@ -66,6 +114,7 @@ func StringColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
 		notnull: notnull,
+		typ:     columnTypeString,
 	}
 }
 
@@ -73,6 +122,7 @@ func DateColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
 		notnull: notnull,
+		typ:     columnTypeDate,
 	}
 }
 
@@ -80,6 +130,7 @@ func FloatColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
 		notnull: notnull,
+		typ:     columnTypeFloat,
 	}
 }
 
@@ -87,6 +138,7 @@ func BoolColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
 		notnull: notnull,
+		typ:     columnTypeBool,
 	}
 }
 
@@ -94,6 +146,7 @@ func BytesColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
 		notnull: notnull,
+		typ:     columnTypeBytes,
 	}
 }
 
