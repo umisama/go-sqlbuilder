@@ -7,9 +7,8 @@ type ColumnConfig interface {
 
 	toColumn(Table) Column
 	Name() string
-	NotNull() bool
 	Type() columnType
-	Options() interface{}
+	Options() []ColumnOption
 }
 
 type columnType int
@@ -23,6 +22,17 @@ const (
 	columnTypeBytes
 )
 
+// ColumnOption represents options for columns. ex: primary key.
+// Use const CO_*
+type ColumnOption int
+
+const (
+	CO_PrimaryKey ColumnOption = iota
+	CO_NotNull
+	CO_Unique
+	CO_AutoIncrement
+)
+
 // ColumnList represents list of Column.
 type ColumnList []Column
 
@@ -31,7 +41,6 @@ type Column interface {
 	serializable
 
 	column_name() string
-	not_null() bool
 	config() ColumnConfig
 
 	// Eq creates Condition for "column==right".  Type for right is column's one or other Column.
@@ -63,26 +72,21 @@ type Column interface {
 }
 
 type columnConfigImpl struct {
-	name    string
-	notnull bool
-	typ     columnType
-	opt     interface{}
+	name string
+	typ  columnType
+	opts []ColumnOption
 }
 
 func (c *columnConfigImpl) Name() string {
 	return c.name
 }
 
-func (c *columnConfigImpl) NotNull() bool {
-	return c.notnull
-}
-
 func (c *columnConfigImpl) Type() columnType {
 	return c.typ
 }
 
-func (c *columnConfigImpl) Options() interface{} {
-	return c.opt
+func (c *columnConfigImpl) Options() []ColumnOption {
+	return c.opts
 }
 
 func (m *columnConfigImpl) toColumn(table Table) Column {
@@ -105,10 +109,6 @@ func (m *columnImpl) column_name() string {
 	return m.name
 }
 
-func (m *columnImpl) not_null() bool {
-	return m.notnull
-}
-
 func (m *columnImpl) config() ColumnConfig {
 	return m.columnConfigImpl
 }
@@ -119,56 +119,56 @@ func (m *columnImpl) serialize(bldr *builder) {
 }
 
 // IntColumn creates config for INTEGER type column.
-func IntColumn(name string, notnull bool) ColumnConfig {
+func IntColumn(name string, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
-		name:    name,
-		notnull: notnull,
-		typ:     columnTypeInt,
+		name: name,
+		typ:  columnTypeInt,
+		opts: opts,
 	}
 }
 
 // StringColumn creates config for TEXT or VARCHAR type column.
-func StringColumn(name string, notnull bool) ColumnConfig {
+func StringColumn(name string, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
-		name:    name,
-		notnull: notnull,
-		typ:     columnTypeString,
+		name: name,
+		typ:  columnTypeString,
+		opts: opts,
 	}
 }
 
 // DateColumn creates config for DATETIME type column.
-func DateColumn(name string, notnull bool) ColumnConfig {
+func DateColumn(name string, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
-		name:    name,
-		notnull: notnull,
-		typ:     columnTypeDate,
+		name: name,
+		typ:  columnTypeDate,
+		opts: opts,
 	}
 }
 
 // FloatColumn creates config for REAL or FLOAT type column.
-func FloatColumn(name string, notnull bool) ColumnConfig {
+func FloatColumn(name string, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
-		name:    name,
-		notnull: notnull,
-		typ:     columnTypeFloat,
+		name: name,
+		typ:  columnTypeFloat,
+		opts: opts,
 	}
 }
 
 // BoolColumn creates config for BOOLEAN type column.
-func BoolColumn(name string, notnull bool) ColumnConfig {
+func BoolColumn(name string, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
-		name:    name,
-		notnull: notnull,
-		typ:     columnTypeBool,
+		name: name,
+		typ:  columnTypeBool,
+		opts: opts,
 	}
 }
 
 // BytesColumn creates config for BLOB type column.
-func BytesColumn(name string, notnull bool) ColumnConfig {
+func BytesColumn(name string, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
-		name:    name,
-		notnull: notnull,
-		typ:     columnTypeBytes,
+		name: name,
+		typ:  columnTypeBytes,
+		opts: opts,
 	}
 }
 

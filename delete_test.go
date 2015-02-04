@@ -9,9 +9,9 @@ func TestDelete(t *testing.T) {
 	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	query, args, err := Delete(table1).Where(table1.C("id").Eq(1)).ToSql()

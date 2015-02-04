@@ -103,13 +103,32 @@ func (m createTableColumnList) serialize(bldr *builder) {
 			bldr.Append(", ")
 		}
 		cc := column.config()
+
+		// Column name
 		bldr.AppendItem(cc)
 		bldr.Append(" ")
+
+		// SQL data name
 		str, err := dialect.SqlType(cc)
 		if err != nil {
 			bldr.SetError(err)
 		}
 		bldr.Append(str)
+
+		// Column options
+		for _, opt := range cc.Options() {
+			switch opt {
+			case CO_PrimaryKey:
+				bldr.Append(" PRIMARY KEY")
+			case CO_AutoIncrement:
+				bldr.Append(" AUTO INCREMENT")
+			case CO_NotNull:
+				bldr.Append(" NOT NULL")
+			case CO_Unique:
+				bldr.Append(" UNIQUE")
+			}
+		}
+
 	}
 }
 

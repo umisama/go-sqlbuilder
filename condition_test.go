@@ -11,9 +11,9 @@ func TestBinaryCondition(t *testing.T) {
 	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	type testcase struct {
@@ -97,9 +97,9 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	type testcase struct {
@@ -182,9 +182,9 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 func TestAndCondition(t *testing.T) {
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 	eq1 := table1.C("id").Eq(table1.C("test1"))
 	eq2 := table1.C("id").Eq(1)
@@ -208,9 +208,9 @@ func TestAndCondition(t *testing.T) {
 func TestOrCondition(t *testing.T) {
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 	eq1 := table1.C("id").Eq(table1.C("test1"))
 	eq2 := table1.C("id").Eq(1)

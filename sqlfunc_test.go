@@ -10,9 +10,9 @@ func TestSqlFunc(t *testing.T) {
 	b := newBuilder()
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	Func("funcname", table1.C("id")).serialize(b)

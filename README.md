@@ -51,9 +51,9 @@ Sqlbuilder needs table definition to strict query generating.
 ```go
 table1, _ := sb.NewTable(
 	"TABLE_A",
-	sb.IntColumn("id", true),
-	sb.StrColumn("name", true)
-	sb.IntColumn("age", true),
+	sb.IntColumn("id, sb.CO_PrimaryKey),
+	sb.StrColumn("name")
+	sb.IntColumn("age"),
 )
 ```
 
@@ -66,7 +66,7 @@ query, args, err := sb.CreateTable(table1).ToSql()
 if err != nil {
 	panic(err)
 }
-// query == `CREATE TABLE "TABLE_A" ( "id" INTEGER, "value" INTEGER );`
+// query == `CREATE TABLE "TABLE_A" ( "id" INTEGER PRIMARY KEY, "value" INTEGER );`
 // args  == []interface{}{}
 // err   == nil
 ```

@@ -16,7 +16,7 @@ func TestTable(t *testing.T) {
 
 	table1, err = NewTable(
 		"TABLE_NAME",
-		IntColumn("id", true),
+		IntColumn("id"),
 	)
 	a.Nil(err)
 	a.NotNil(table1)
@@ -28,16 +28,16 @@ func TestJoinTable(t *testing.T) {
 
 	l_table, _ := NewTable(
 		"LEFT_TABLE",
-		IntColumn("id", true),
-		IntColumn("right_id", true),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("right_id"),
 	)
 	r_table, _ := NewTable(
 		"RIGHT_TABLE",
-		IntColumn("id", true),
+		IntColumn("id", CO_PrimaryKey),
 	)
 	rr_table, _ := NewTable(
 		"RIGHTRIGHT_TABLE",
-		IntColumn("id", true),
+		IntColumn("id", CO_PrimaryKey),
 	)
 
 	joinedTable := l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id"))).InnerJoin(rr_table, l_table.C("right_id").Eq(rr_table.C("id")))

@@ -9,9 +9,9 @@ func TestSelect(t *testing.T) {
 	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	query, attrs, err := Select(table1.C("test1"), table1.C("test2")).
@@ -39,9 +39,9 @@ func TestSelect(t *testing.T) {
 func BenchmarkSelect(b *testing.B) {
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	for i := 0; i < b.N; i++ {

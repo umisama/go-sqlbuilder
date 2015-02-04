@@ -9,9 +9,9 @@ func TestUpdate(t *testing.T) {
 	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
-		IntColumn("id", false),
-		IntColumn("test1", false),
-		IntColumn("test2", false),
+		IntColumn("id", CO_PrimaryKey),
+		IntColumn("test1"),
+		IntColumn("test2"),
 	)
 
 	query, attrs, err := Update(table1).
