@@ -2,6 +2,7 @@
 **go-sqlbuilder** is a SQL-query builder for golang.  This supports you using relational database with more readable and flexible code than raw SQL query string.
 
 [![Build Status](https://travis-ci.org/umisama/go-sqlbuilder.svg?branch=master)](https://travis-ci.org/umisama/go-sqlbuilder)
+[![Coverage Status](https://coveralls.io/repos/umisama/go-sqlbuilder/badge.svg)](https://coveralls.io/r/umisama/go-sqlbuilder)
 
 ## Status
 !!!SUPER ALPHA!!!
