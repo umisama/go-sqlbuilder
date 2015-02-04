@@ -1,11 +1,14 @@
 package sqlbuilder
 
 import (
+	"errors"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
 
 func TestBinaryCondition(t *testing.T) {
+	a := assert.New(t)
 	table1, _ := NewTable(
 		"TABLE_A",
 		IntColumn("id", false),
@@ -61,21 +64,117 @@ func TestBinaryCondition(t *testing.T) {
 			`"TABLE_A"."id" LIKE ?`,
 			[]interface{}{"hoge"},
 			nil,
+		}, {
+			table1.C("id").Between(1, 2),
+			`"TABLE_A"."id" BETWEEN ? AND ?`,
+			[]interface{}{1, 2},
+			nil,
+		}, {
+			table1.C("id").In(1, 2),
+			`"TABLE_A"."id" IN ( ?, ? )`,
+			[]interface{}{1, 2},
+			nil,
+		}, {
+			// case for fail
+			table1.C("id").In(NewTable("DUMMY TABLE")),
+			``,
+			[]interface{}{},
+			errors.New("sqlbuilder: unsupported type"),
 		},
 	}
 
-	for i, c := range cases {
+	for _, c := range cases {
 		bldr := newBuilder()
 		c.cond.serialize(bldr)
-		if bldr.Query() != c.query {
-			t.Error("got:", bldr.Query(), " case:", i)
-		}
-		if !reflect.DeepEqual(bldr.Args(), c.attrs) {
-			t.Error("got:", bldr.Args(), " case:", i)
-		}
-		if bldr.Err() != c.err {
-			t.Error("got:", bldr.Err(), " case:", i)
-		}
+		a.Equal(c.query, bldr.Query())
+		a.Equal(c.attrs, bldr.Args())
+		a.Equal(c.err, bldr.Err())
+	}
+
+}
+
+func TestBinaryConditionForSqlFunctions(t *testing.T) {
+	a := assert.New(t)
+	table1, _ := NewTable(
+		"TABLE_A",
+		IntColumn("id", false),
+		IntColumn("test1", false),
+		IntColumn("test2", false),
+	)
+
+	type testcase struct {
+		cond  Condition
+		query string
+		attrs []interface{}
+		err   error
+	}
+
+	var cases = []testcase{
+		{
+			Func("count", table1.C("id")).Eq(table1.C("test1")),
+			`count("TABLE_A"."id")="TABLE_A"."test1"`,
+			[]interface{}{},
+			nil,
+		}, {
+			Func("count", table1.C("id")).Eq(1),
+			`count("TABLE_A"."id")=?`,
+			[]interface{}{int64(1)},
+			nil,
+		}, {
+			Func("count", table1.C("id")).NotEq(1),
+			`count("TABLE_A"."id")<>?`,
+			[]interface{}{int64(1)},
+			nil,
+		}, {
+			Func("count", table1.C("id")).Gt(1),
+			`count("TABLE_A"."id")>?`,
+			[]interface{}{int64(1)},
+			nil,
+		}, {
+			Func("count", table1.C("id")).GtEq(1),
+			`count("TABLE_A"."id")>=?`,
+			[]interface{}{int64(1)},
+			nil,
+		}, {
+			Func("count", table1.C("id")).Lt(1),
+			`count("TABLE_A"."id")<?`,
+			[]interface{}{int64(1)},
+			nil,
+		}, {
+			Func("count", table1.C("id")).LtEq(1),
+			`count("TABLE_A"."id")<=?`,
+			[]interface{}{int64(1)},
+			nil,
+		}, {
+			Func("count", table1.C("id")).Like("hoge"),
+			`count("TABLE_A"."id") LIKE ?`,
+			[]interface{}{"hoge"},
+			nil,
+		}, {
+			Func("count", table1.C("id")).Between(1, 2),
+			`count("TABLE_A"."id") BETWEEN ? AND ?`,
+			[]interface{}{1, 2},
+			nil,
+		}, {
+			Func("count", table1.C("id")).In(1, 2),
+			`count("TABLE_A"."id") IN ( ?, ? )`,
+			[]interface{}{1, 2},
+			nil,
+		}, {
+			// case for fail
+			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE")),
+			``,
+			[]interface{}{},
+			errors.New("sqlbuilder: unsupported type"),
+		},
+	}
+
+	for _, c := range cases {
+		bldr := newBuilder()
+		c.cond.serialize(bldr)
+		a.Equal(c.query, bldr.Query())
+		a.Equal(c.attrs, bldr.Args())
+		a.Equal(c.err, bldr.Err())
 	}
 
 }

@@ -103,3 +103,30 @@ func (c *betweenCondition) serialize(bldr *builder) {
 	bldr.AppendItem(c.higher)
 	return
 }
+
+type inCondition struct {
+	left serializable
+	in   []serializable
+}
+
+func newInCondition(left Column, list ...interface{}) Condition {
+	m := &inCondition{
+		left: left,
+		in:   make([]serializable, 0, len(list)),
+	}
+	for _, item := range list {
+		if c, ok := item.(Column); ok {
+			m.in = append(m.in, c)
+		} else {
+			m.in = append(m.in, toLiteral(item))
+		}
+	}
+	return m
+}
+
+func (c *inCondition) serialize(bldr *builder) {
+	bldr.AppendItem(c.left)
+	bldr.Append(" IN ( ")
+	bldr.AppendItems(c.in, ", ")
+	bldr.Append(" )")
+}

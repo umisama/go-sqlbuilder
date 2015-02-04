@@ -70,3 +70,7 @@ func (left *sqlFuncImpl) Like(right string) Condition {
 func (left *sqlFuncImpl) Between(lower, higher interface{}) Condition {
 	return newBetweenCondition(left, lower, higher)
 }
+
+func (left *sqlFuncImpl) In(vals ...interface{}) Condition {
+	return newInCondition(left, vals...)
+}

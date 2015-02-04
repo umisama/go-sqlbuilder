@@ -38,6 +38,7 @@ type Column interface {
 	LtEq(right interface{}) Condition
 	Like(right string) Condition
 	Between(lower, higher interface{}) Condition
+	In(values ...interface{}) Condition
 }
 
 type columnConfigImpl struct {
@@ -174,6 +175,10 @@ func (left *columnImpl) Like(right string) Condition {
 
 func (left *columnImpl) Between(lower, higher interface{}) Condition {
 	return newBetweenCondition(left, lower, higher)
+}
+
+func (left *columnImpl) In(val ...interface{}) Condition {
+	return newInCondition(left, val...)
 }
 
 func (b ColumnList) serialize(bldr *builder) {
