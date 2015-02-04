@@ -2,6 +2,7 @@ package sqlbuilder
 
 import "fmt"
 
+// Condition represents a condition for WHERE clause and other.
 type Condition interface {
 	serializable
 }
@@ -24,6 +25,7 @@ func (c *connectCondition) serialize(bldr *builder) {
 	return
 }
 
+// And creates a combined condition with "AND" operator.
 func And(conds ...Condition) Condition {
 	return &connectCondition{
 		connector: "AND",
@@ -31,6 +33,7 @@ func And(conds ...Condition) Condition {
 	}
 }
 
+// And creates a combined condition with "OR" operator.
 func Or(conds ...Condition) Condition {
 	return &connectCondition{
 		connector: "OR",

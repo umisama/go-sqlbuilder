@@ -1,22 +1,27 @@
 package sqlbuilder
 
+// InsertStatement represents a INSERT statement.
 type InsertStatement struct {
 	columns ColumnList
 	values  []serializable
 	into    Table
 }
 
+// Insert returns new INSERT statement. The table is Table object for into.
 func Insert(into Table) *InsertStatement {
 	return &InsertStatement{
 		into: into,
 	}
 }
 
+// Columns sets columns for insert.
+// If not set this, get error on ToSql().
 func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
 	b.columns = ColumnList(columns)
 	return b
 }
 
+// Values sets VALUES clause.  The values is data for insert.
 func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	sl := make([]serializable, len(values))
 	for i := range values {
@@ -26,7 +31,8 @@ func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
 	return b
 }
 
-func (b *InsertStatement) ToSql() (string, []interface{}, error) {
+// ToSql generates query string, placeholder arguments, and returns err on errors.
+func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 
 	// INSERT

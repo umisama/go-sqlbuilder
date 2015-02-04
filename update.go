@@ -1,5 +1,6 @@
 package sqlbuilder
 
+// UpdateStatement represents a UPDATE statement.
 type UpdateStatement struct {
 	table      Table
 	set        []serializable
@@ -10,6 +11,7 @@ type UpdateStatement struct {
 	offset     int
 }
 
+// Update returns new UPDATE statement. The table is Table object to update.
 func Update(table Table) *UpdateStatement {
 	return &UpdateStatement{
 		table: table,
@@ -17,26 +19,31 @@ func Update(table Table) *UpdateStatement {
 	}
 }
 
+// Set sets SETS clause like col=val.  Call many time for update multi columns.
 func (b *UpdateStatement) Set(col Column, val interface{}) *UpdateStatement {
 	b.set = append(b.set, newUpdateValue(col, val))
 	return b
 }
 
+// Where sets WHERE clause.  The cond is filter condition.
 func (b *UpdateStatement) Where(cond Condition) *UpdateStatement {
 	b.where = cond
 	return b
 }
 
+// Limit sets LIMIT clause.
 func (b *UpdateStatement) Limit(limit int) *UpdateStatement {
 	b.limit = limit
 	return b
 }
 
+// Limit sets OFFSET clause.
 func (b *UpdateStatement) Offset(offset int) *UpdateStatement {
 	b.offset = offset
 	return b
 }
 
+// OrderBy sets "ORDER BY" clause. Use descending order if the desc is true, by the columns.
 func (b *UpdateStatement) OrderBy(desc bool, columns ...Column) *UpdateStatement {
 	ex_column := make([]serializable, len(columns))
 	for i := range columns {
@@ -52,7 +59,8 @@ func (b *UpdateStatement) OrderBy(desc bool, columns ...Column) *UpdateStatement
 	return b
 }
 
-func (b *UpdateStatement) ToSql() (string, []interface{}, error) {
+// ToSql generates query string, placeholder arguments, and returns err on errors.
+func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 
 	// UPDATE TABLE SET (COLUMN=VALUE)

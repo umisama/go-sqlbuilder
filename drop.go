@@ -1,16 +1,19 @@
 package sqlbuilder
 
+// DeleteTableStatement represents a "DROP TABLE" statement.
 type DropTableStatement struct {
 	table Table
 }
 
+// DropTable returns new "DROP TABLE" statement. The table is Table object to drop.
 func DropTable(table Table) *DropTableStatement {
 	return &DropTableStatement{
 		table: table,
 	}
 }
 
-func (b *DropTableStatement) ToSql() (string, []interface{}, error) {
+// ToSql generates query string, placeholder arguments, and returns err on errors.
+func (b *DropTableStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 
 	bldr.Append("DROP TABLE ")

@@ -1,5 +1,7 @@
 package sqlbuilder
 
+// ColumnConfig represents a config for table's column.
+// This has a name, data type and some options.
 type ColumnConfig interface {
 	serializable
 
@@ -21,8 +23,10 @@ const (
 	columnTypeBytes
 )
 
+// ColumnList represents list of Column.
 type ColumnList []Column
 
+// Column represents a table column.
 type Column interface {
 	serializable
 
@@ -30,14 +34,31 @@ type Column interface {
 	not_null() bool
 	config() ColumnConfig
 
+	// Eq creates Condition for "column==right".  Type for right is column's one or other Column.
 	Eq(right interface{}) Condition
+
+	// NotEq creates Condition for "column<>right".  Type for right is column's one or other Column.
 	NotEq(right interface{}) Condition
+
+	// GtEq creates Condition for "column>right".  Type for right is column's one or other Column.
 	Gt(right interface{}) Condition
+
+	// GtEq creates Condition for "column>=right".  Type for right is column's one or other Column.
 	GtEq(right interface{}) Condition
+
+	// Lt creates Condition for "column<right".  Type for right is column's one or other Column.
 	Lt(right interface{}) Condition
+
+	// LtEq creates Condition for "column<=right".  Type for right is column's one or other Column.
 	LtEq(right interface{}) Condition
+
+	// Like creates Condition for "column LIKE right".  Type for right is column's one or other Column.
 	Like(right string) Condition
+
+	// Between creates Condition for "column BETWEEN lower AND higher".  Type for lower/higher is int or time.Time.
 	Between(lower, higher interface{}) Condition
+
+	// In creates Condition for "column IN (values[0], values[1] ...)".  Type for values is column's one or other Column.
 	In(values ...interface{}) Condition
 }
 
@@ -97,6 +118,7 @@ func (m *columnImpl) serialize(bldr *builder) {
 	return
 }
 
+// IntColumn creates config for INTEGER type column.
 func IntColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
@@ -105,6 +127,7 @@ func IntColumn(name string, notnull bool) ColumnConfig {
 	}
 }
 
+// StringColumn creates config for TEXT or VARCHAR type column.
 func StringColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
@@ -113,6 +136,7 @@ func StringColumn(name string, notnull bool) ColumnConfig {
 	}
 }
 
+// DateColumn creates config for DATETIME type column.
 func DateColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
@@ -121,6 +145,7 @@ func DateColumn(name string, notnull bool) ColumnConfig {
 	}
 }
 
+// FloatColumn creates config for REAL or FLOAT type column.
 func FloatColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
@@ -129,6 +154,7 @@ func FloatColumn(name string, notnull bool) ColumnConfig {
 	}
 }
 
+// BoolColumn creates config for BOOLEAN type column.
 func BoolColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,
@@ -137,6 +163,7 @@ func BoolColumn(name string, notnull bool) ColumnConfig {
 	}
 }
 
+// BytesColumn creates config for BLOB type column.
 func BytesColumn(name string, notnull bool) ColumnConfig {
 	return &columnConfigImpl{
 		name:    name,

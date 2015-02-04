@@ -25,19 +25,37 @@ type joinTable struct {
 	on    Condition
 }
 
+// Table represents a table.
 type Table interface {
 	serializable
 
+	// C returns table's column by the name.
 	C(name string) Column
+
+	// Name returns table' name.
 	Name() string
+
+	// Columns returns all columns.
 	Columns() []Column
 
+	// InnerJoin returns a joined table use with "INNER JOIN" clause.
+	// The joined table can be handled in same way as single table.
 	InnerJoin(Table, Condition) Table
+
+	// LeftOuterJoin returns a joined table use with "LEFT OUTER JOIN" clause.
+	// The joined table can be handled in same way as single table.
 	LeftOuterJoin(Table, Condition) Table
+
+	// RightOuterJoin returns a joined table use with "RIGHT OUTER JOIN" clause.
+	// The joined table can be handled in same way as single table.
 	RightOuterJoin(Table, Condition) Table
+
+	// FullOuterJoin returns a joined table use with "FULL OUTER JOIN" clause.
+	// The joined table can be handled in same way as single table.
 	FullOuterJoin(Table, Condition) Table
 }
 
+// NewTable returns a new table named by the name.  Specify table columns by the column_config.
 func NewTable(name string, column_configs ...ColumnConfig) (Table, error) {
 	if len(column_configs) == 0 {
 		return nil, errors.New("column is needed")

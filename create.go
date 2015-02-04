@@ -1,5 +1,6 @@
 package sqlbuilder
 
+// CreateIndexStatement represents a "CREATE INDEX" statement.
 type CreateIndexStatement struct {
 	table       Table
 	columns     []Column
@@ -7,29 +8,34 @@ type CreateIndexStatement struct {
 	ifNotExists bool
 }
 
+// CreateTableStatement represents a "CREATE TABLE" statement.
 type CreateTableStatement struct {
 	table       Table
 	ifNotExists bool
 }
 
+// CreateTable returns new "CREATE TABLE" statement. The table is Table object to create.
 func CreateTable(table Table) *CreateTableStatement {
 	return &CreateTableStatement{
 		table: table,
 	}
 }
 
+// IfNotExists sets "IF NOT EXISTS" clause.
 func (b *CreateTableStatement) IfNotExists() *CreateTableStatement {
 	b.ifNotExists = true
 	return b
 }
 
+// CreateIndex returns new "CREATE INDEX" statement. The table is Table object to create index.
 func CreateIndex(table Table) *CreateIndexStatement {
 	return &CreateIndexStatement{
 		table: table,
 	}
 }
 
-func (b *CreateTableStatement) ToSql() (string, []interface{}, error) {
+// ToSql generates query string, placeholder arguments, and error.
+func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 
 	bldr.Append("CREATE TABLE ")
@@ -46,22 +52,27 @@ func (b *CreateTableStatement) ToSql() (string, []interface{}, error) {
 	return bldr.Query(), bldr.Args(), bldr.Err()
 }
 
+// IfNotExists sets "IF NOT EXISTS" clause.
 func (b *CreateIndexStatement) IfNotExists() *CreateIndexStatement {
 	b.ifNotExists = true
 	return b
 }
 
+// IfNotExists sets "IF NOT EXISTS" clause. If not set this, returns error on ToSql().
 func (b *CreateIndexStatement) Columns(columns ...Column) *CreateIndexStatement {
 	b.columns = columns
 	return b
 }
 
+// Name sets name for index.
+// If not set this, auto generated name will be used.
 func (b *CreateIndexStatement) Name(name string) *CreateIndexStatement {
 	b.name = name
 	return b
 }
 
-func (b *CreateIndexStatement) ToSql() (string, []interface{}, error) {
+// ToSql generates query string, placeholder arguments, and returns err on errors.
+func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 
 	bldr.Append("CREATE INDEX ")

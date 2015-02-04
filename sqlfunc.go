@@ -1,5 +1,6 @@
 package sqlbuilder
 
+// SqlFunc represents function on SQL(ex:count(*)).  This can be use in the same way as Column.
 type SqlFunc interface {
 	Column
 }
@@ -9,9 +10,10 @@ type sqlFuncImpl struct {
 	columns []serializable
 }
 
-func Func(name string, columns ...Column) SqlFunc {
-	cl := make([]serializable, 0, len(columns))
-	for _, c := range columns {
+// Func returns new SQL function.  The name is function name, and the args is arguments of function
+func Func(name string, args ...Column) SqlFunc {
+	cl := make([]serializable, 0, len(args))
+	for _, c := range args {
 		cl = append(cl, c)
 	}
 	return &sqlFuncImpl{

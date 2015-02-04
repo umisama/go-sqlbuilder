@@ -1,3 +1,6 @@
+// Package sqlbuilder is a SQL-query builder for golang.  This supports you using relational database with more readable and flexible code than raw SQL query string.
+//
+// See https://github.com/umisama/go-sqlbuilder for more infomation.
 package sqlbuilder
 
 import (
@@ -6,6 +9,7 @@ import (
 
 var dialect Dialect
 
+// Statement reprecents a statement(SELECT/INSERT/UPDATE and other)
 type Statement interface {
 	ToSql() (query string, attrs []interface{}, err error)
 }
@@ -14,6 +18,8 @@ type serializable interface {
 	serialize(b *builder)
 }
 
+// SetDialect sets dialect for SQL server.
+// Must set dialect at first.
 func SetDialect(opt Dialect) {
 	dialect = opt
 }

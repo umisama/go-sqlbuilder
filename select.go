@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// SelectStatement represents a SELECT statement.
 type SelectStatement struct {
 	columns    []serializable
 	from       Table
@@ -17,6 +18,8 @@ type SelectStatement struct {
 	having     Condition
 }
 
+// Select returns new SELECT statement with set result columns.
+// Get all columns (use *) if columns's length is 0.
 func Select(columns ...Column) *SelectStatement {
 	ex_column := make([]serializable, len(columns))
 	for i := range columns {
@@ -27,21 +30,26 @@ func Select(columns ...Column) *SelectStatement {
 	}
 }
 
+// From sets FROM clause.
+// If not set this, get error on ToSql().
 func (b *SelectStatement) From(table Table) *SelectStatement {
 	b.from = table
 	return b
 }
 
+// Where sets WHERE clause.  The cond is filter condition.
 func (b *SelectStatement) Where(cond Condition) *SelectStatement {
 	b.where = cond
 	return b
 }
 
+// Distinct sets DISTINCT clause.
 func (b *SelectStatement) Distinct() *SelectStatement {
 	b.distinct = true
 	return b
 }
 
+// GroupBy sets "GROUP BY" clause by the columns.
 func (b *SelectStatement) GroupBy(columns ...Column) *SelectStatement {
 	ex_column := make([]serializable, len(columns))
 	for i := range columns {
@@ -51,11 +59,13 @@ func (b *SelectStatement) GroupBy(columns ...Column) *SelectStatement {
 	return b
 }
 
+// GroupBy sets "HAVING" clause with the cond.
 func (b *SelectStatement) Having(cond Condition) *SelectStatement {
 	b.having = cond
 	return b
 }
 
+// OrderBy sets "ORDER BY" clause. Use descending order if the desc is true, by the columns.
 func (b *SelectStatement) OrderBy(desc bool, columns ...Column) *SelectStatement {
 	ex_column := make([]serializable, len(columns))
 	for i := range columns {
@@ -71,17 +81,20 @@ func (b *SelectStatement) OrderBy(desc bool, columns ...Column) *SelectStatement
 	return b
 }
 
+// Limit sets LIMIT clause.
 func (b *SelectStatement) Limit(limit int) *SelectStatement {
 	b.limit = limit
 	return b
 }
 
+// Offset sets OFFSET clause.
 func (b *SelectStatement) Offset(offset int) *SelectStatement {
 	b.offset = offset
 	return b
 }
 
-func (b *SelectStatement) ToSql() (string, []interface{}, error) {
+// ToSql generates query string, placeholder arguments, and returns err on errors.
+func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 
 	// SELECT COLUMN
