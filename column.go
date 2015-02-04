@@ -9,6 +9,7 @@ type ColumnConfig interface {
 	Name() string
 	Type() columnType
 	Options() []ColumnOption
+	HasOption(ColumnOption) bool
 }
 
 type columnType int
@@ -87,6 +88,15 @@ func (c *columnConfigImpl) Type() columnType {
 
 func (c *columnConfigImpl) Options() []ColumnOption {
 	return c.opts
+}
+
+func (c *columnConfigImpl) HasOption(trg ColumnOption) bool {
+	for _, v := range c.opts {
+		if v == trg {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *columnConfigImpl) toColumn(table Table) Column {

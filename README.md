@@ -16,12 +16,11 @@
  * Some database server
    * Sqlite3([mattn/go-sqlite3](https://github.com/mattn/go-sqlite3))
    * MySQL([ziutek/mymysql](https://github.com/ziutek/mymysql))
-   * PostgresSQL(comming soon...)
+   * PostgresSQL([lib/pq](https://github.com/lib/pq))
 
 ## TODO
  * Support subquery
  * Table/Column alias
- * PostgresSQL support
 
 ## Quick start
 working on

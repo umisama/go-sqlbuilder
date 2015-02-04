@@ -117,15 +117,12 @@ func (m createTableColumnList) serialize(bldr *builder) {
 
 		// Column options
 		for _, opt := range cc.Options() {
-			switch opt {
-			case CO_PrimaryKey:
-				bldr.Append(" PRIMARY KEY")
-			case CO_AutoIncrement:
-				bldr.Append(" AUTO INCREMENT")
-			case CO_NotNull:
-				bldr.Append(" NOT NULL")
-			case CO_Unique:
-				bldr.Append(" UNIQUE")
+			str, err := dialect.ColumnOptionToString(opt)
+			if err != nil {
+				bldr.SetError(err)
+			}
+			if len(str) != 0 {
+				bldr.Append(" " + str)
 			}
 		}
 
