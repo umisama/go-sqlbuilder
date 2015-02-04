@@ -1,52 +1,131 @@
 # umisama/go-sqlbuilder
+**go-sqlbuilder** is a SQL-query builder for golang.  This supports you using relational database with more readable code than raw SQL string.
+
 [![Build Status](https://travis-ci.org/umisama/go-sqlbuilder.svg?branch=master)](https://travis-ci.org/umisama/go-sqlbuilder)
+[godoc.org](http://godoc.org/github.com/umisama/go-sqlbuilder)
 
 ## Status
-development...
+!!!SUPER ALPHA!!!
 
-## Motivation
- * Build SQL query in less limitations.
- * Flexible API.
- * (will be my ORM base...)
+## Examples
+### Initialize
+off course, go getable.
 
-## Concepts
-### initialize
+```shell-script
+$ go get github.com/umisama/go-sqlbuilder
+```
+
+I recomended to set "sb" as sqlbuilder's shorthand.
 
 ```go
 import sb "github.com/umisama/go-sqlbuilder"
 
-func init() {
-	sb.Setup(SqliteDialect{})
+// First, you set dialect for your DB
+func init (
+	sb.SetDialect(sb.SqliteDialect{})
+)
+```
+
+### Define a table
+Sqlbuilder needs table definition to strict query generating.
+
+```go
+table1, _ := sb.NewTable(
+	"TABLE_A",
+	sb.IntColumn("id", true),
+	sb.StrColumn("name", true)
+	sb.IntColumn("age", true),
+)
+```
+
+### CRATE TABLE statement
+Sqlbuilder can generate CREATE TABLE statement from table object.  
+Statement objects have ```ToSql()``` method.  ```Statement.ToSql()``` returns query(string), placeholder arguments([]interface{}) and error(error).
+
+```go
+query, args, err := sb.CreateTable(table1).ToSql()
+if err != nil {
+	panic(err)
+}
+// query == `CREATE TABLE "TABLE_A" ( "id" INTEGER, "value" INTEGER );`
+// args  == []interface{}{}
+// err   == nil
+```
+
+You can exec with ```database/sql``` package or Table-struct mapper(for example, gorp).  
+here is example,
+
+```go
+db, err := sql.Open("sqlite3", ":memory:")
+if err != nil {
+	panic(err)
+}
+_, err = db.Exec(query, args...)
+if err != nil {
+	panic(err)
 }
 ```
 
-### define table
+### INSERT statement
+Sqlbuilder can generate INSERT statement.  You can checkout a column with ```*Table.C([column_name])``` method.
 
 ```go
-table1 := sb.NewTable(
-	"TABLE_NAME",
-	sb.IntColumn("id", false),
-	sb.StrColumn("name", []sb.ColumnOptions{
-		sb.UTF8,
-		sb.UTF8CaseInsensitive,
-		sb.StrColumnSize(255),
-		},
-		false)
-)
-
-query, attrs, err := table1.ToSql()
-// err == nil
-// attrs == []interface{}{}
-// query == `CREATE TABLE "TABLE_NAME" ("id" INTEGER, "name" VARCHAR(255))`
+query, args, err := sb.Insert(table1).
+	Columns(table1.C("id"), table1.C("value")).
+	Values(1, 10).
+	ToSql()
+// query == `INSERT INTO "TABLE_A" ( "id", "value" ) VALUES ( ?, ? );`
+// args  == []interface{}{1, 10}
+// err   == nil
 ```
 
-### query
+### SELECT statement
+Sqlbuilder can generate SELECT statement with readable interfaces.  Condition object is generated from column object.
 
 ```go
-query, attrs, err := Select("*").From(table1).Where(
-	sb.Eq(table1.Column("id"), 1),
-	).ToSql()
-// err == nil
-// attrs == []interface{}{1}
-// query == `SELECT * FROM "TABLE_NAME" WHERE "TABLE_NAME"."id" = ?`
+query, args, err := sb.Select(table1.C("id"), table1.C("value")).
+	From(table1).
+	Where(
+		table1.C("id").Eq(10),
+	).
+	Limit(1).OrderBy(false, table1.C("id")).
+	ToSql()
+// query == `SELECT "TABLE_A"."id", "TABLE_A"."value" FROM "TABLE_A" WHERE "TABLE_A"."id"=? ORDER BY "TABLE_A"."id" ASC LIMIT ?;`
+// args  == []interface{}{10, 1}
+// err   == nil
 ```
+
+### Condition clause
+You can define condition with Condition objects.  Condition object create from ```Column```'s method.
+
+| example operation                     |  output means              |
+|:-------------------------------------:|:--------------------------:|
+|```table1.C("id").Eq(10)```              | "TABLE1"."id"=10           |
+|```table1.C("id").Eq(table2.C("id"))```    | "TABLE1"."id"="TABLE2"."id"|
+
+More than one condition can combine with AND & OR operator.
+
+| example operation                     |  output means              |
+|:-------------------------------------:|:--------------------------:|
+|```And(table1.C("id").Eq(1), table2.C("id").Eq(2)``` | "TABLE1"."id"=1 AND "TABLE2"."id"=1 |
+|```Or(table1.C("id").Eq(1), table2.C("id").Eq(2)```  | "TABLE1"."id"=1 OR "TABLE2"."id"=1 |
+
+Sqlbuilder is supporting most common condition operators.  
+Here is now supporting...
+
+| columns method        |SQL operator|      SQL results     |
+|:---------------------:|:----------:|:--------------------:|
+|Eq(Column or value)    | ```=```    | "TABLE"."id" = 10    |
+|NotEq(Column or value) | ```<>```   | "TABLE"."id" <> 10   |
+|Gt(Column or value)    | ```>```    | "TABLE"."id" > 10    |
+|GtEq(Column or value)  | ```>=```   | "TABLE"."id" >= 10   |
+|Lt(Column or value)    | ```<```    | "TABLE"."id" < 10    |
+|LtEq(Column or value)  | ```<=```   | "TABLE"."id" <= 10   |
+|Like(string)           | ```LIKE``` | "TABLE"."id" LIKE "%hoge%"   |
+|In(values array)       | ```IN``` | "TABLE"."id" IN ( 1, 2, 3 ) |
+|Between(loewer, higher int | ```BETWEEN``` | "TABLE"."id" BETWEEN 10 AND 20)|
+
+Document for all: [godoc(Column)](http://godoc.org/github.com/umisama/go-sqlbuilder#Column)
+
+## License
+under the MIT license
