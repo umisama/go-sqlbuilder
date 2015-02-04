@@ -2,7 +2,6 @@
 **go-sqlbuilder** is a SQL-query builder for golang.  This supports you using relational database with more readable and flexible code than raw SQL query string.
 
 [![Build Status](https://travis-ci.org/umisama/go-sqlbuilder.svg?branch=master)](https://travis-ci.org/umisama/go-sqlbuilder)
-[godoc.org](http://godoc.org/github.com/umisama/go-sqlbuilder)
 
 ## Status
 !!!SUPER ALPHA!!!
@@ -145,6 +144,9 @@ Here is now supporting...
 |Between(loewer, higher int | ```BETWEEN``` | "TABLE"."id" BETWEEN 10 AND 20)|
 
 Document for all: [godoc(Column)](http://godoc.org/github.com/umisama/go-sqlbuilder#Column)
+
+## More documents
+[godoc.org](http://godoc.org/github.com/umisama/go-sqlbuilder)
 
 ## License
 under the MIT license
