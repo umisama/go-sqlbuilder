@@ -1,11 +1,30 @@
 # umisama/go-sqlbuilder
-**go-sqlbuilder** is a SQL-query builder for golang.  This supports you using relational database with more readable code than raw SQL string.
+**go-sqlbuilder** is a SQL-query builder for golang.  This supports you using relational database with more readable and flexible code than raw SQL query string.
 
 [![Build Status](https://travis-ci.org/umisama/go-sqlbuilder.svg?branch=master)](https://travis-ci.org/umisama/go-sqlbuilder)
 [godoc.org](http://godoc.org/github.com/umisama/go-sqlbuilder)
 
 ## Status
 !!!SUPER ALPHA!!!
+
+## Support
+ * Generate SQL query programmatically.
+   * fluent flexibility! yeah!!
+ * Basic SQL statements
+   * SELECT/INSERT/UPDATE/DELETE/DROP/CREATE TABLE/CREATE INDEX
+ * Strict error checking
+ * Some database server
+   * Sqlite3([mattn/go-sqlite3](https://github.com/mattn/go-sqlite3))
+   * MySQL([ziutek/mymysql](https://github.com/ziutek/mymysql))
+   * PostgresSQL(comming soon...)
+
+## TODO
+ * Support subquery
+ * Table/Column alias
+ * PostgresSQL support
+
+## Quick start
+working on
 
 ## Examples
 ### Initialize
