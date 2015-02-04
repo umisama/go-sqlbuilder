@@ -4,6 +4,13 @@ go:
   - 1.4
   - tip
 
+before_install:
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+
 before_script:
   - mysql -e 'create database go_sqlbuilder_test;'
 
+script:
+  - $HOME/gopath/bin/goveralls -repotoken IgwKyLgyhaPzKKNdryx4T3swQIiqfO1Rb
