@@ -14,8 +14,32 @@ func TestDelete(t *testing.T) {
 		IntColumn("test2"),
 	)
 
-	query, args, err := Delete(table1).Where(table1.C("id").Eq(1)).ToSql()
-	a.Equal(`DELETE FROM "TABLE_A" WHERE "TABLE_A"."id"=?;`, query)
-	a.Equal([]interface{}{1}, args)
-	a.Nil(err)
+	type testcase struct {
+		stmt  Statement
+		query string
+		args  []interface{}
+		err   bool
+	}
+	var cases = []testcase{{
+		Delete(table1).Where(table1.C("id").Eq(1)),
+		`DELETE FROM "TABLE_A" WHERE "TABLE_A"."id"=?;`,
+		[]interface{}{1},
+		false,
+	}, {
+		Delete(nil).Where(table1.C("id").Eq(1)),
+		``,
+		[]interface{}{},
+		true,
+	}}
+
+	for _, c := range cases {
+		query, args, err := c.stmt.ToSql()
+		a.Equal(c.query, query)
+		a.Equal(c.args, args)
+		if c.err {
+			a.NotNil(err)
+		} else {
+			a.Nil(err)
+		}
+	}
 }

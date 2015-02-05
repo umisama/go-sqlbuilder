@@ -34,24 +34,39 @@ func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
 
 	// INSERT
 	bldr.Append("INSERT")
 
-	// INTO Table(COLUMN)
+	// INTO Table
 	bldr.Append(" INTO ")
-	bldr.AppendItem(b.into)
-	if len(b.columns) != 0 {
-		bldr.Append(" ( ")
-		bldr.AppendItem(b.columns)
-		bldr.Append(" )")
+	if b.into != nil {
+		bldr.AppendItem(b.into)
+	} else {
+		bldr.SetError(newError("into is nil"))
+		return
 	}
 
+	// (COLUMN)
+	if len(b.columns) == 0 {
+		b.columns = b.into.Columns()
+	}
+	bldr.Append(" ( ")
+	bldr.AppendItem(b.columns)
+	bldr.Append(" )")
+
 	// VALUES
+	if len(b.columns) != len(b.values) {
+		bldr.SetError(newError("%d values needed, but got %d", len(b.columns), len(b.values)))
+		return
+	}
 	bldr.Append(" VALUES ( ")
 	bldr.AppendItems(b.values, ", ")
 	bldr.Append(" )")
 
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	return
 }

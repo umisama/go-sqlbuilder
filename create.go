@@ -37,6 +37,15 @@ func CreateIndex(table Table) *CreateIndexStatement {
 // ToSql generates query string, placeholder arguments, and error.
 func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
+
+	if b.table == nil {
+		bldr.SetError(newError("table is nil"))
+		return
+	}
 
 	bldr.Append("CREATE TABLE ")
 	if b.ifNotExists {
@@ -44,12 +53,15 @@ func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err er
 	}
 	bldr.AppendItem(b.table)
 
-	bldr.Append(" ( ")
-	bldr.AppendItem(createTableColumnList(b.table.Columns()))
-	bldr.Append(" )")
-
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	if len(b.table.Columns()) != 0 {
+		bldr.Append(" ( ")
+		bldr.AppendItem(createTableColumnList(b.table.Columns()))
+		bldr.Append(" )")
+	} else {
+		bldr.SetError(newError("CreateTableStatement needs one or more columns"))
+		return
+	}
+	return
 }
 
 // IfNotExists sets "IF NOT EXISTS" clause.
@@ -74,22 +86,41 @@ func (b *CreateIndexStatement) Name(name string) *CreateIndexStatement {
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
 
 	bldr.Append("CREATE INDEX ")
 	if b.ifNotExists {
 		bldr.Append("IF NOT EXISTS ")
 	}
 
-	bldr.Append(dialect.QuoteField(b.name))
+	if len(b.name) != 0 {
+		bldr.Append(dialect.QuoteField(b.name))
+	} else {
+		bldr.SetError(newError("name was not setted."))
+		return
+	}
+
 	bldr.Append(" ON ")
+	if b.table != nil {
+		bldr.AppendItem(b.table)
+	} else {
+		bldr.SetError(newError("table is nil."))
+		return
+	}
 
-	bldr.AppendItem(b.table)
-	bldr.Append(" ( ")
-	bldr.AppendItem(createIndexColumnList(b.columns))
-	bldr.Append(" )")
+	if len(b.columns) != 0 {
+		bldr.Append(" ( ")
+		bldr.AppendItem(createIndexColumnList(b.columns))
+		bldr.Append(" )")
+	} else {
+		bldr.SetError(newError("columns was not setted."))
+		return
+	}
 
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	return
 }
 
 type createTableColumnList []Column

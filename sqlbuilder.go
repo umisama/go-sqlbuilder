@@ -95,6 +95,9 @@ func (b *builder) AppendItems(parts []serializable, sep string) {
 	if b.err != nil {
 		return
 	}
+	if parts == nil {
+		return
+	}
 
 	first := true
 	for _, part := range parts {
@@ -110,6 +113,9 @@ func (b *builder) AppendItems(parts []serializable, sep string) {
 
 func (b *builder) AppendItem(part serializable) {
 	if b.err != nil {
+		return
+	}
+	if part == nil {
 		return
 	}
 	part.serialize(b)

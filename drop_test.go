@@ -14,8 +14,32 @@ func TestDropTable(t *testing.T) {
 		IntColumn("test2"),
 	)
 
-	query, args, err := DropTable(table1).ToSql()
-	a.Equal(`DROP TABLE "TABLE_A";`, query)
-	a.Equal([]interface{}{}, args)
-	a.Nil(err)
+	type testcase struct {
+		stmt  Statement
+		query string
+		args  []interface{}
+		err   bool
+	}
+	var cases = []testcase{{
+		DropTable(table1),
+		`DROP TABLE "TABLE_A";`,
+		[]interface{}{},
+		false,
+	}, {
+		DropTable(nil),
+		``,
+		[]interface{}{},
+		true,
+	}}
+
+	for _, c := range cases {
+		query, args, err := c.stmt.ToSql()
+		a.Equal(c.query, query)
+		a.Equal(c.args, args)
+		if c.err {
+			a.NotNil(err)
+		} else {
+			a.Nil(err)
+		}
+	}
 }

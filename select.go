@@ -92,6 +92,10 @@ func (b *SelectStatement) Offset(offset int) *SelectStatement {
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
 
 	// SELECT COLUMN
 	bldr.Append("SELECT ")
@@ -106,7 +110,7 @@ func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.Append(" FROM ")
 		bldr.AppendItem(b.from)
 	} else {
-		bldr.SetError(newError("from is not found"))
+		bldr.SetError(newError("from is nil"))
 	}
 
 	// WHERE
@@ -148,7 +152,5 @@ func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.Append(" OFFSET ")
 		bldr.AppendValue(b.offset)
 	}
-
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	return
 }

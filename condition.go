@@ -66,7 +66,7 @@ func newBinaryOperationCondition(left, right interface{}, operator string) *bina
 		cond.right = toLiteral(t)
 	}
 	if !column_exist {
-		cond.err = newError("hello world")
+		cond.err = newError("Binary operation is need column")
 	}
 
 	return cond

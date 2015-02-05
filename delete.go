@@ -22,14 +22,22 @@ func (b *DeleteStatement) Where(cond Condition) *DeleteStatement {
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *DeleteStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
 
 	bldr.Append("DELETE FROM ")
-	bldr.AppendItem(b.from)
+	if b.from != nil {
+		bldr.AppendItem(b.from)
+	} else {
+		bldr.SetError(newError("table is nil"))
+		return
+	}
+
 	if b.where != nil {
 		bldr.Append(" WHERE ")
 		bldr.AppendItem(b.where)
 	}
-
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	return
 }

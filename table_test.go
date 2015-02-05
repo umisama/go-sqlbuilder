@@ -7,7 +7,6 @@ import (
 
 func TestTable(t *testing.T) {
 	a := assert.New(t)
-
 	table1, err := NewTable(
 		"TABLE_NAME",
 	)
@@ -24,7 +23,6 @@ func TestTable(t *testing.T) {
 
 func TestJoinTable(t *testing.T) {
 	a := assert.New(t)
-	b := newBuilder()
 
 	l_table, _ := NewTable(
 		"LEFT_TABLE",
@@ -40,9 +38,47 @@ func TestJoinTable(t *testing.T) {
 		IntColumn("id", CO_PrimaryKey),
 	)
 
-	joinedTable := l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id"))).InnerJoin(rr_table, l_table.C("right_id").Eq(rr_table.C("id")))
+	// inner join
+	b := newBuilder()
+	joinedTable := l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
 	joinedTable.serialize(b)
-	a.Equal(b.Query(), `"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id" INNER JOIN "RIGHTRIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHTRIGHT_TABLE"."id"`)
+	a.Equal(`"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.Query())
+	a.Nil(b.Err())
+	a.Empty(b.Args())
+
+	// left outer join
+	b = newBuilder()
+	joinedTable = l_table.LeftOuterJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
+	joinedTable.serialize(b)
+	a.Equal(`"LEFT_TABLE" LEFT OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.Query())
+	a.Nil(b.Err())
+	a.Empty(b.Args())
+
+	// right outer join
+	b = newBuilder()
+	joinedTable = l_table.RightOuterJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
+	joinedTable.serialize(b)
+	a.Equal(`"LEFT_TABLE" RIGHT OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.Query())
+	a.Nil(b.Err())
+	a.Empty(b.Args())
+
+	// full outer join
+	b = newBuilder()
+	joinedTable = l_table.FullOuterJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
+	joinedTable.serialize(b)
+	a.Equal(`"LEFT_TABLE" FULL OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.Query())
+	a.Nil(b.Err())
+	a.Empty(b.Args())
+
+	// joined table column
+	a.Equal(joinedTable.C("id"), l_table.C("id"))
+	a.Equal(joinedTable.C("right_id"), l_table.C("right_id"))
+
+	// combination
+	b = newBuilder()
+	joinedTable = l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id"))).InnerJoin(rr_table, l_table.C("right_id").Eq(rr_table.C("id")))
+	joinedTable.serialize(b)
+	a.Equal(`"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id" INNER JOIN "RIGHTRIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHTRIGHT_TABLE"."id"`, b.Query())
 	a.Nil(b.Err())
 	a.Empty(b.Args())
 }

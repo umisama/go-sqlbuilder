@@ -15,10 +15,18 @@ func DropTable(table Table) *DropTableStatement {
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *DropTableStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
 
 	bldr.Append("DROP TABLE ")
-	bldr.AppendItem(b.table)
+	if b.table != nil {
+		bldr.AppendItem(b.table)
+	} else {
+		bldr.SetError(newError("table is nil"))
+		return
+	}
 
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	return
 }

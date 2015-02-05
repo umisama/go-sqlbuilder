@@ -40,10 +40,11 @@ func (l *literalImpl) serialize(bldr *builder) {
 	return
 }
 
+// convert to sqldriver.Value(int64/float64/bool/[]byte/string/time.Time)
 func (l *literalImpl) converted() (interface{}, error) {
 	switch t := l.raw.(type) {
 	case int, int8, int16, int32, int64:
-		return reflect.ValueOf(t).Int(), nil
+		return int64(reflect.ValueOf(t).Int()), nil
 	case uint, uint8, uint16, uint32, uint64:
 		return int64(reflect.ValueOf(t).Uint()), nil
 	case float32, float64:
@@ -58,13 +59,18 @@ func (l *literalImpl) converted() (interface{}, error) {
 		return t, nil
 	case sqldriver.Valuer:
 		return t, nil
+	default:
+		return nil, newError("got %T type, but literal is not supporting this", t)
 	}
-
-	return nil, newError("unsupported type")
 }
 
 func (l *literalImpl) string() string {
-	switch t := l.raw.(type) {
+	val, err := l.converted()
+	if err != nil {
+		return ""
+	}
+
+	switch t := val.(type) {
 	case int64:
 		return strconv.FormatInt(t, 10)
 	case float64:
@@ -73,12 +79,15 @@ func (l *literalImpl) string() string {
 		return strconv.FormatBool(t)
 	case string:
 		return t
+	case []byte:
+		return string(t)
 	case time.Time:
-		return t.Format(time.ANSIC)
+		return t.Format("2006-01-02 15:04:05")
 	case fmt.Stringer:
 		return t.String()
+	default:
+		return ""
 	}
-	return ""
 }
 
 func (l *literalImpl) Raw() interface{} {

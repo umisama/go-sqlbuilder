@@ -62,12 +62,25 @@ func (b *UpdateStatement) OrderBy(desc bool, columns ...Column) *UpdateStatement
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
 
 	// UPDATE TABLE SET (COLUMN=VALUE)
 	bldr.Append("UPDATE ")
-	bldr.AppendItem(b.table)
+	if b.table != nil {
+		bldr.AppendItem(b.table)
+	} else {
+		bldr.SetError(newError("table is nil"))
+	}
+
 	bldr.Append(" SET ")
-	bldr.AppendItems(b.set, ", ")
+	if len(b.set) != 0 {
+		bldr.AppendItems(b.set, ", ")
+	} else {
+		bldr.SetError(newError("length of sets is 0"))
+	}
 
 	// WHERE
 	if b.where != nil {
@@ -94,8 +107,7 @@ func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.AppendValue(b.offset)
 	}
 
-	bldr.Append(dialect.QuerySuffix())
-	return bldr.Query(), bldr.Args(), bldr.Err()
+	return
 }
 
 type updateValue struct {
