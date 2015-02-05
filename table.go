@@ -1,9 +1,5 @@
 package sqlbuilder
 
-import (
-	"errors"
-)
-
 type joinType int
 
 const (
@@ -58,7 +54,7 @@ type Table interface {
 // NewTable returns a new table named by the name.  Specify table columns by the column_config.
 func NewTable(name string, column_configs ...ColumnConfig) (Table, error) {
 	if len(column_configs) == 0 {
-		return nil, errors.New("column is needed")
+		return nil, newError("column is needed")
 	}
 
 	t := &table{

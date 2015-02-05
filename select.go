@@ -1,9 +1,5 @@
 package sqlbuilder
 
-import (
-	"errors"
-)
-
 // SelectStatement represents a SELECT statement.
 type SelectStatement struct {
 	columns    []serializable
@@ -110,7 +106,7 @@ func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.Append(" FROM ")
 		bldr.AppendItem(b.from)
 	} else {
-		bldr.SetError(errors.New("from is not found"))
+		bldr.SetError(newError("from is not found"))
 	}
 
 	// WHERE
@@ -128,7 +124,7 @@ func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) 
 	// HAVING
 	if b.having != nil {
 		if b.groupBy == nil {
-			bldr.SetError(errors.New("GROUP BY by clause is not found"))
+			bldr.SetError(newError("GROUP BY by clause is not found"))
 		}
 		bldr.Append(" HAVING ")
 		bldr.AppendItem(b.having)

@@ -5,6 +5,7 @@ package sqlbuilder
 
 import (
 	"bytes"
+	"fmt"
 )
 
 var dialect Dialect
@@ -112,4 +113,20 @@ func (b *builder) AppendItem(part serializable) {
 		return
 	}
 	part.serialize(b)
+}
+
+type errors struct {
+	fmt  string
+	args []interface{}
+}
+
+func newError(fmt string, args ...interface{}) *errors {
+	return &errors{
+		fmt:  fmt,
+		args: args,
+	}
+}
+
+func (err *errors) Error() string {
+	return fmt.Sprintf("sqlbuilder: "+err.fmt, err.args...)
 }

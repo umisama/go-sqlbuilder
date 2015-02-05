@@ -1,7 +1,6 @@
 package sqlbuilder
 
 import (
-	"errors"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -79,7 +78,7 @@ func TestBinaryCondition(t *testing.T) {
 			table1.C("id").In(NewTable("DUMMY TABLE")),
 			``,
 			[]interface{}{},
-			errors.New("sqlbuilder: unsupported type"),
+			newError("unsupported type"),
 		},
 	}
 
@@ -165,7 +164,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE")),
 			``,
 			[]interface{}{},
-			errors.New("sqlbuilder: unsupported type"),
+			newError("unsupported type"),
 		},
 	}
 

@@ -2,7 +2,6 @@ package sqlbuilder
 
 import (
 	sqldriver "database/sql/driver"
-	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -61,7 +60,7 @@ func (l *literalImpl) converted() (interface{}, error) {
 		return t, nil
 	}
 
-	return nil, errors.New("sqlbuilder: unsupported type")
+	return nil, newError("unsupported type")
 }
 
 func (l *literalImpl) string() string {

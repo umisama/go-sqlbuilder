@@ -1,7 +1,5 @@
 package sqlbuilder
 
-import "fmt"
-
 // Condition represents a condition for WHERE clause and other.
 type Condition interface {
 	serializable
@@ -68,7 +66,7 @@ func newBinaryOperationCondition(left, right interface{}, operator string) *bina
 		cond.right = toLiteral(t)
 	}
 	if !column_exist {
-		cond.err = fmt.Errorf("hello world")
+		cond.err = newError("hello world")
 	}
 
 	return cond

@@ -1,7 +1,6 @@
 package sqlbuilder
 
 import (
-	"errors"
 	"strconv"
 )
 
@@ -43,7 +42,7 @@ func (m SqliteDialect) SqlType(cc ColumnConfig) (string, error) {
 		return "BLOB", nil
 	}
 
-	return "", errors.New("unknown column type")
+	return "", newError("unknown column type")
 }
 
 func (m SqliteDialect) ColumnOptionToString(co ColumnOption) (string, error) {
@@ -58,7 +57,7 @@ func (m SqliteDialect) ColumnOptionToString(co ColumnOption) (string, error) {
 		return "UNIQUE", nil
 	}
 
-	return "", errors.New("unknown column option")
+	return "", newError("unknown column option")
 }
 
 type MysqlDialect struct{}
@@ -91,7 +90,7 @@ func (m MysqlDialect) SqlType(cc ColumnConfig) (string, error) {
 		return "BLOB", nil
 	}
 
-	return "", errors.New("unknown column type")
+	return "", newError("unknown column type")
 }
 
 func (m MysqlDialect) ColumnOptionToString(co ColumnOption) (string, error) {
@@ -106,7 +105,7 @@ func (m MysqlDialect) ColumnOptionToString(co ColumnOption) (string, error) {
 		return "UNIQUE", nil
 	}
 
-	return "", errors.New("unknown column option")
+	return "", newError("unknown column option")
 }
 
 type PostgresDialect struct{}
@@ -142,7 +141,7 @@ func (m PostgresDialect) SqlType(cc ColumnConfig) (string, error) {
 		return "BYTEA", nil
 	}
 
-	return "", errors.New("unknown column type")
+	return "", newError("unknown column type")
 }
 
 func (m PostgresDialect) ColumnOptionToString(co ColumnOption) (string, error) {
@@ -157,5 +156,5 @@ func (m PostgresDialect) ColumnOptionToString(co ColumnOption) (string, error) {
 		return "UNIQUE", nil
 	}
 
-	return "", errors.New("unknown column option")
+	return "", newError("unknown column option")
 }
