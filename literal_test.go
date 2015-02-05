@@ -55,7 +55,7 @@ func TestLiteralString(t *testing.T) {
 		{toLiteral(bool(true)), "true", false},
 		{toLiteral([]byte{0x11}), string([]byte{0x11}), false},
 		{toLiteral(string("shibuya-rin")), "shibuya-rin", false},
-		{toLiteral(time.Unix(0, 0)), "1970-01-01 09:00:00", false},
+		{toLiteral(time.Unix(0, 0).UTC()), "1970-01-01 00:00:00", false},
 		{toLiteral(complex(0, 0)), "", true},
 	}
 
