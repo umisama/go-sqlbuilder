@@ -52,9 +52,10 @@ type Table interface {
 }
 
 // NewTable returns a new table named by the name.  Specify table columns by the column_config.
-func NewTable(name string, column_configs ...ColumnConfig) (Table, error) {
+// Panic if column is empty.
+func NewTable(name string, column_configs ...ColumnConfig) Table {
 	if len(column_configs) == 0 {
-		return nil, newError("column is needed")
+		panic(newError("column is needed"))
 	}
 
 	t := &table{
@@ -67,7 +68,7 @@ func NewTable(name string, column_configs ...ColumnConfig) (Table, error) {
 	}
 	t.columns = columns
 
-	return t, nil
+	return t
 }
 
 func (m *table) serialize(bldr *builder) {

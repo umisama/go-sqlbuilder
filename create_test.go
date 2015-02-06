@@ -8,13 +8,16 @@ import (
 
 func TestCreate(t *testing.T) {
 	a := assert.New(t)
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey, CO_AutoIncrement),
 		IntColumn("test1", CO_Unique),
 		IntColumn("test2"),
 	)
-	table_zero_columns, _ := NewTable("TABLETABLE")
+	table_zero_columns := &table{
+		name:    "ZERO_TABLE",
+		columns: make([]Column, 0),
+	}
 
 	type testcase struct {
 		stmt  Statement

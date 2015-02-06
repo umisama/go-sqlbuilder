@@ -48,9 +48,9 @@ func init (
 Sqlbuilder needs table definition to strict query generating.
 
 ```go
-table1, _ := sb.NewTable(
+table1  := sb.NewTable(
 	"TABLE_A",
-	sb.IntColumn("id, sb.CO_PrimaryKey),
+	sb.IntColumn("id", sb.CO_PrimaryKey),
 	sb.StrColumn("name")
 	sb.IntColumn("age"),
 )

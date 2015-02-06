@@ -7,7 +7,7 @@ import (
 
 func TestSelect(t *testing.T) {
 	a := assert.New(t)
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),
@@ -73,7 +73,7 @@ func TestSelect(t *testing.T) {
 }
 
 func BenchmarkSelect(b *testing.B) {
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),

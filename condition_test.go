@@ -8,7 +8,7 @@ import (
 
 func TestBinaryCondition(t *testing.T) {
 	a := assert.New(t)
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),
@@ -75,7 +75,7 @@ func TestBinaryCondition(t *testing.T) {
 			nil,
 		}, {
 			// case for fail
-			table1.C("id").In(NewTable("DUMMY TABLE")),
+			table1.C("id").In(NewTable("DUMMY TABLE", StringColumn("id"))),
 			``,
 			[]interface{}{},
 			newError("got %T type, but literal is not supporting this"),
@@ -93,7 +93,7 @@ func TestBinaryCondition(t *testing.T) {
 
 func TestBinaryConditionForSqlFunctions(t *testing.T) {
 	a := assert.New(t)
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),
@@ -160,7 +160,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 			nil,
 		}, {
 			// case for fail
-			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE")),
+			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE", StringColumn("id"))),
 			``,
 			[]interface{}{},
 			newError("unsupported type"),
@@ -178,7 +178,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 }
 
 func TestAndCondition(t *testing.T) {
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),
@@ -204,7 +204,7 @@ func TestAndCondition(t *testing.T) {
 }
 
 func TestOrCondition(t *testing.T) {
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),

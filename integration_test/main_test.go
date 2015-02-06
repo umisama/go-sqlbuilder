@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 		{"postgres", sb.PostgresDialect{}, "postgres", "user=postgres dbname=go_sqlbuilder_test sslmode=disable"},
 	}
 
-	table1, _ = sb.NewTable(
+	table1 = sb.NewTable(
 		"TABLE_A",
 		sb.IntColumn("id", sb.CO_PrimaryKey),
 		sb.IntColumn("value"),

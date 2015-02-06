@@ -7,33 +7,36 @@ import (
 
 func TestTable(t *testing.T) {
 	a := assert.New(t)
-	table1, err := NewTable(
-		"TABLE_NAME",
-	)
-	a.Error(err)
-	a.Nil(table1)
 
-	table1, err = NewTable(
-		"TABLE_NAME",
-		IntColumn("id"),
-	)
-	a.Nil(err)
+	var table1 Table
+	a.Panics(func() {
+		table1 = NewTable(
+			"TABLE_NAME",
+		)
+	})
+
+	a.NotPanics(func() {
+		table1 = NewTable(
+			"TABLE_NAME",
+			IntColumn("id"),
+		)
+	})
 	a.NotNil(table1)
 }
 
 func TestJoinTable(t *testing.T) {
 	a := assert.New(t)
 
-	l_table, _ := NewTable(
+	l_table := NewTable(
 		"LEFT_TABLE",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("right_id"),
 	)
-	r_table, _ := NewTable(
+	r_table := NewTable(
 		"RIGHT_TABLE",
 		IntColumn("id", CO_PrimaryKey),
 	)
-	rr_table, _ := NewTable(
+	rr_table := NewTable(
 		"RIGHTRIGHT_TABLE",
 		IntColumn("id", CO_PrimaryKey),
 	)

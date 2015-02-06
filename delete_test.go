@@ -7,7 +7,7 @@ import (
 
 func TestDelete(t *testing.T) {
 	a := assert.New(t)
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),

@@ -8,7 +8,7 @@ import (
 func TestSqlFunc(t *testing.T) {
 	a := assert.New(t)
 	b := newBuilder()
-	table1, _ := NewTable(
+	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
 		IntColumn("test1"),
