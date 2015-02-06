@@ -3,6 +3,7 @@ package sqlbuilder
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestInsert(t *testing.T) {
@@ -10,8 +11,11 @@ func TestInsert(t *testing.T) {
 	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
-		IntColumn("test1"),
-		IntColumn("test2"),
+		StringColumn("str"),
+		BoolColumn("bool"),
+		FloatColumn("float"),
+		DateColumn("date"),
+		BytesColumn("bytes"),
 	)
 
 	type testcase struct {
@@ -22,26 +26,32 @@ func TestInsert(t *testing.T) {
 	}
 	var cases = []testcase{{
 		Insert(table1).
-			Columns(table1.C("test1"), table1.C("test2")).
-			Values(2, 3),
-		`INSERT INTO "TABLE_A" ( "test1", "test2" ) VALUES ( ?, ? );`,
-		[]interface{}{2, 3},
+			Columns(table1.C("str"), table1.C("bool"), table1.C("float"), table1.C("date"), table1.C("bytes")).
+			Values("hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
+		`INSERT INTO "TABLE_A" ( "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ? );`,
+		[]interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
 		false,
 	}, {
 		// all columns if Columns() was not setted.
-		Insert(table1).Values(1, 2, 3),
-		`INSERT INTO "TABLE_A" ( "id", "test1", "test2" ) VALUES ( ?, ?, ? );`,
-		[]interface{}{1, 2, 3},
+		Insert(table1).Values(1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
+		`INSERT INTO "TABLE_A" ( "id", "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ?, ? );`,
+		[]interface{}{1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
 		false,
 	}, {
 		// error if column's length and value's length are not eaual.
-		Insert(table1).Columns(table1.C("test1")).Values(1, 2, 3),
+		Insert(table1).Columns(table1.C("id")).Values(1, 2, 3),
 		"",
 		[]interface{}{},
 		true,
 	}, {
 		// error if into is nil.
-		Insert(nil).Columns(table1.C("test1")).Values(1),
+		Insert(nil).Columns(table1.C("id")).Values(1),
+		"",
+		[]interface{}{},
+		true,
+	}, {
+		// error if into is nil.
+		Insert(table1).Columns(table1.C("str")).Values(1),
 		"",
 		[]interface{}{},
 		true,

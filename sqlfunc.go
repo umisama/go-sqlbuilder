@@ -34,6 +34,10 @@ func (m *sqlFuncImpl) config() ColumnConfig {
 	return nil
 }
 
+func (m *sqlFuncImpl) acceptType(interface{}) bool {
+	return false
+}
+
 func (m *sqlFuncImpl) serialize(bldr *builder) {
 	bldr.Append(m.name)
 	bldr.Append("(")

@@ -123,6 +123,14 @@ func newUpdateValue(col Column, val interface{}) updateValue {
 }
 
 func (m updateValue) serialize(bldr *builder) {
+	if !m.col.acceptType(m.val) {
+		bldr.SetError(newError("%s column not accept %T",
+			m.col.config().Type().String(),
+			m.val.Raw(),
+		))
+		return
+	}
+
 	bldr.Append(dialect.QuoteField(m.col.column_name()))
 	bldr.Append("=")
 	bldr.AppendItem(m.val)

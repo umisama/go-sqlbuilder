@@ -64,6 +64,15 @@ func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.SetError(newError("%d values needed, but got %d", len(b.columns), len(b.values)))
 		return
 	}
+	for i := range b.columns {
+		if !b.columns[i].acceptType(b.values[i]) {
+			bldr.SetError(newError("%s column not accept %T",
+				b.columns[i].config().Type().String(),
+				b.values[i]))
+			return
+		}
+	}
+
 	bldr.Append(" VALUES ( ")
 	bldr.AppendItems(b.values, ", ")
 	bldr.Append(" )")

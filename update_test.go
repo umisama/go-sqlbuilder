@@ -48,6 +48,12 @@ func TestUpdate(t *testing.T) {
 		``,
 		[]interface{}{},
 		true,
+	}, {
+		Update(table1).Where(table1.C("id").Eq(1)).
+			Set(table1.C("test1"), "foo"),
+		``,
+		[]interface{}{},
+		true,
 	}}
 	for _, c := range cases {
 		query, args, err := c.stmt.ToSql()

@@ -1,5 +1,10 @@
 package sqlbuilder
 
+import (
+	"reflect"
+	"time"
+)
+
 // ColumnConfig represents a config for table's column.
 // This has a name, data type and some options.
 type ColumnConfig interface {
@@ -23,6 +28,64 @@ const (
 	columnTypeBytes
 )
 
+func (t columnType) String() string {
+	switch t {
+	case columnTypeInt:
+		return "int"
+	case columnTypeString:
+		return "string"
+	case columnTypeDate:
+		return "date"
+	case columnTypeFloat:
+		return "float"
+	case columnTypeBool:
+		return "bool"
+	case columnTypeBytes:
+		return "bytes"
+	}
+	panic(newError("unknown columnType"))
+}
+
+func (t columnType) CapableTypes() []reflect.Type {
+	switch t {
+	case columnTypeInt:
+		return []reflect.Type{
+			reflect.TypeOf(int(0)),
+			reflect.TypeOf(int8(0)),
+			reflect.TypeOf(int16(0)),
+			reflect.TypeOf(int32(0)),
+			reflect.TypeOf(int64(0)),
+			reflect.TypeOf(uint(0)),
+			reflect.TypeOf(uint8(0)),
+			reflect.TypeOf(uint16(0)),
+			reflect.TypeOf(uint32(0)),
+			reflect.TypeOf(uint64(0)),
+		}
+	case columnTypeString:
+		return []reflect.Type{
+			reflect.TypeOf(""),
+		}
+	case columnTypeDate:
+		return []reflect.Type{
+			reflect.TypeOf(time.Time{}),
+		}
+	case columnTypeFloat:
+		return []reflect.Type{
+			reflect.TypeOf(float32(0)),
+			reflect.TypeOf(float64(0)),
+		}
+	case columnTypeBool:
+		return []reflect.Type{
+			reflect.TypeOf(bool(true)),
+		}
+	case columnTypeBytes:
+		return []reflect.Type{
+			reflect.TypeOf([]byte{}),
+		}
+	}
+	return []reflect.Type{}
+}
+
 // ColumnOption represents options for columns. ex: primary key.
 // Use const CO_*
 type ColumnOption int
@@ -43,6 +106,7 @@ type Column interface {
 
 	column_name() string
 	config() ColumnConfig
+	acceptType(interface{}) bool
 
 	// Eq creates Condition for "column==right".  Type for right is column's one or other Column.
 	Eq(right interface{}) Condition
@@ -121,6 +185,24 @@ func (m *columnImpl) column_name() string {
 
 func (m *columnImpl) config() ColumnConfig {
 	return m.columnConfigImpl
+}
+
+func (m *columnImpl) acceptType(val interface{}) bool {
+	lit, ok := val.(literal)
+	if !ok || lit == nil {
+		return false
+	}
+	if reflect.ValueOf(lit).IsNil() {
+		return !m.HasOption(CO_NotNull)
+	}
+
+	valt := reflect.TypeOf(lit.Raw())
+	for _, t := range m.typ.CapableTypes() {
+		if t == valt {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *columnImpl) serialize(bldr *builder) {
@@ -221,6 +303,10 @@ func (left *columnImpl) In(val ...interface{}) Condition {
 func (b ColumnList) serialize(bldr *builder) {
 	first := true
 	for _, column := range b {
+		if column == nil {
+			bldr.SetError(newError("column is not found"))
+			return
+		}
 		if first {
 			first = false
 		} else {
