@@ -60,9 +60,9 @@ func TestUpdate(t *testing.T) {
 		a.Equal(c.query, query)
 		a.Equal(c.args, args)
 		if c.err {
-			a.NotNil(err)
+			a.Error(err)
 		} else {
-			a.Nil(err)
+			a.NoError(err)
 		}
 	}
 

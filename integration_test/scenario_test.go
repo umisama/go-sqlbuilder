@@ -13,10 +13,10 @@ func TestCreateTable(t *testing.T) {
 	a := assert.New(t)
 
 	query, args, err := sb.CreateTable(table1).ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	_, err = db.Exec(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 }
 
 func TestInsert(t *testing.T) {
@@ -27,15 +27,15 @@ func TestInsert(t *testing.T) {
 		Columns(table1.C("id"), table1.C("value")).
 		Values(1, 10).
 		ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	result, err := db.Exec(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 
 	if a.NotNil(result) {
 		rows_affected, err := result.RowsAffected()
 		a.Equal(1, rows_affected)
-		a.Nil(err)
+		a.NoError(err)
 	}
 
 	// data 2
@@ -43,15 +43,15 @@ func TestInsert(t *testing.T) {
 		Columns(table1.C("id"), table1.C("value")).
 		Values(2, 20).
 		ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	result, err = db.Exec(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 
 	if a.NotNil(result) {
 		rows_affected, err := result.RowsAffected()
 		a.Equal(1, rows_affected)
-		a.Nil(err)
+		a.NoError(err)
 	}
 }
 
@@ -61,10 +61,10 @@ func TestSelect(t *testing.T) {
 		From(table1).
 		Where(table1.C("id").Eq(1)).
 		Limit(1).OrderBy(false, table1.C("id")).ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	rows, err := db.Query(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 
 	if a.NotNil(rows) {
 		defer rows.Close()
@@ -72,7 +72,7 @@ func TestSelect(t *testing.T) {
 		for rows.Next() {
 			id, value := 0, 0
 			err := rows.Scan(&id, &value)
-			a.Nil(err)
+			a.NoError(err)
 			a.Equal(1, id)
 			a.Equal(10, value)
 
@@ -87,16 +87,16 @@ func TestSelect(t *testing.T) {
 func TestSqlFunction(t *testing.T) {
 	a := assert.New(t)
 	query, args, err := sb.Select(sb.Func("count", table1.C("id"))).From(table1).ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	rows, err := db.Query(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 	if a.NotNil(rows) {
 		defer rows.Close()
 		rows.Next()
 		value := 0
 		err := rows.Scan(&value)
-		a.Nil(err)
+		a.NoError(err)
 		a.Equal(2, value)
 	}
 }
@@ -104,17 +104,17 @@ func TestSqlFunction(t *testing.T) {
 func TestDelete(t *testing.T) {
 	a := assert.New(t)
 	query, args, err := sb.Delete(table1).Where(table1.C("id").Eq(0)).ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	_, err = db.Exec(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 }
 
 func TestDropTable(t *testing.T) {
 	a := assert.New(t)
 	query, args, err := sb.DropTable(table1).ToSql()
-	a.Nil(err)
+	a.NoError(err)
 
 	_, err = db.Exec(query, args...)
-	a.Nil(err)
+	a.NoError(err)
 }
