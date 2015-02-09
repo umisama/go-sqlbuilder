@@ -26,7 +26,6 @@ func TestCreateIndex(t *testing.T) {
 	a := assert.New(t)
 	for _, table := range []sb.Table{tbl_phone, tbl_email} {
 		query, args, err := sb.CreateIndex(table).Name("I_" + table.Name() + "_PERSONID").Columns(table.C("person_id")).
-			IfNotExists().
 			ToSql()
 		a.NoError(err)
 
