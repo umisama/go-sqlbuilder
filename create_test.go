@@ -27,7 +27,7 @@ func TestCreate(t *testing.T) {
 	}
 	var cases = []testcase{{
 		CreateTable(table1).IfNotExists(),
-		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTO INCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT );`,
+		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT );`,
 		[]interface{}{},
 		false,
 	}, {

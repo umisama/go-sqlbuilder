@@ -51,7 +51,7 @@ func (m SqliteDialect) ColumnOptionToString(co ColumnOption) (string, error) {
 	case CO_PrimaryKey:
 		return "PRIMARY KEY", nil
 	case CO_AutoIncrement:
-		return "AUTO INCREMENT", nil
+		return "AUTOINCREMENT", nil
 	case CO_NotNull:
 		return "NOT NULL", nil
 	case CO_Unique:
@@ -104,7 +104,7 @@ func (m MysqlDialect) ColumnOptionToString(co ColumnOption) (string, error) {
 	case CO_PrimaryKey:
 		return "PRIMARY KEY", nil
 	case CO_AutoIncrement:
-		return "AUTO INCREMENT", nil
+		return "AUTO_INCREMENT", nil
 	case CO_NotNull:
 		return "NOT NULL", nil
 	case CO_Unique:
