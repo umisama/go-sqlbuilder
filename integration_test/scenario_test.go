@@ -24,8 +24,8 @@ func TestInsert(t *testing.T) {
 
 	// data 1
 	query, args, err := sb.Insert(table1).
-		Columns(table1.C("id"), table1.C("value")).
-		Values(1, 10).
+		Columns(table1.C("id"), table1.C("value1"), table1.C("value2")).
+		Values(1, 10, "teststring").
 		ToSql()
 	a.NoError(err)
 
@@ -40,8 +40,8 @@ func TestInsert(t *testing.T) {
 
 	// data 2
 	query, args, err = sb.Insert(table1).
-		Columns(table1.C("id"), table1.C("value")).
-		Values(2, 20).
+		Columns(table1.C("id"), table1.C("value1"), table1.C("value2")).
+		Values(2, 20, "teststring").
 		ToSql()
 	a.NoError(err)
 
@@ -57,7 +57,7 @@ func TestInsert(t *testing.T) {
 
 func TestSelect(t *testing.T) {
 	a := assert.New(t)
-	query, args, err := sb.Select(table1.C("id"), table1.C("value")).
+	query, args, err := sb.Select(table1.C("id"), table1.C("value1"), table1.C("value2")).
 		From(table1).
 		Where(table1.C("id").Eq(1)).
 		Limit(1).OrderBy(false, table1.C("id")).ToSql()
@@ -70,12 +70,12 @@ func TestSelect(t *testing.T) {
 		defer rows.Close()
 		count := 0
 		for rows.Next() {
-			id, value := 0, 0
-			err := rows.Scan(&id, &value)
+			id, value1, value2 := 0, 0, ""
+			err := rows.Scan(&id, &value1, &value2)
 			a.NoError(err)
 			a.Equal(1, id)
-			a.Equal(10, value)
-
+			a.Equal(10, value1)
+			a.Equal("teststring", value2)
 			count += 1
 		}
 		a.Equal(1, count)

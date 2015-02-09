@@ -75,7 +75,7 @@ func TestBinaryCondition(t *testing.T) {
 			nil,
 		}, {
 			// case for fail
-			table1.C("id").In(NewTable("DUMMY TABLE", StringColumn("id"))),
+			table1.C("id").In(NewTable("DUMMY TABLE", StringColumn("id", 256))),
 			``,
 			[]interface{}{},
 			newError("got %T type, but literal is not supporting this"),
@@ -160,7 +160,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 			nil,
 		}, {
 			// case for fail
-			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE", StringColumn("id"))),
+			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE", StringColumn("id", 256))),
 			``,
 			[]interface{}{},
 			newError("unsupported type"),

@@ -32,7 +32,8 @@ func TestMain(m *testing.M) {
 	table1 = sb.NewTable(
 		"TABLE_A",
 		sb.IntColumn("id", sb.CO_PrimaryKey),
-		sb.IntColumn("value"),
+		sb.IntColumn("value1"),
+		sb.StringColumn("value2", 255),
 	)
 
 	for _, c := range cases {

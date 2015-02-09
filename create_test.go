@@ -12,7 +12,7 @@ func TestCreate(t *testing.T) {
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey, CO_AutoIncrement),
 		IntColumn("test1", CO_Unique),
-		IntColumn("test2"),
+		StringColumn("test2", 255),
 	)
 	table_zero_columns := &table{
 		name:    "ZERO_TABLE",
@@ -27,7 +27,7 @@ func TestCreate(t *testing.T) {
 	}
 	var cases = []testcase{{
 		CreateTable(table1).IfNotExists(),
-		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTO INCREMENT, "test1" INTEGER UNIQUE, "test2" INTEGER );`,
+		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTO INCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT );`,
 		[]interface{}{},
 		false,
 	}, {

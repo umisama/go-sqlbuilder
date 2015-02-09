@@ -15,6 +15,7 @@ type ColumnConfig interface {
 	Type() columnType
 	Options() []ColumnOption
 	HasOption(ColumnOption) bool
+	Size() int
 }
 
 type columnType int
@@ -139,6 +140,7 @@ type Column interface {
 type columnConfigImpl struct {
 	name string
 	typ  columnType
+	size int // size for varchar column
 	opts []ColumnOption
 }
 
@@ -205,6 +207,10 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 	return false
 }
 
+func (m *columnConfigImpl) Size() int {
+	return m.size
+}
+
 func (m *columnImpl) serialize(bldr *builder) {
 	bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
 	return
@@ -220,11 +226,12 @@ func IntColumn(name string, opts ...ColumnOption) ColumnConfig {
 }
 
 // StringColumn creates config for TEXT or VARCHAR type column.
-func StringColumn(name string, opts ...ColumnOption) ColumnConfig {
+func StringColumn(name string, size int, opts ...ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeString,
 		opts: opts,
+		size: size,
 	}
 }
 

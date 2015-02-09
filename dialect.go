@@ -1,6 +1,7 @@
 package sqlbuilder
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -75,22 +76,27 @@ func (m MysqlDialect) QuoteField(field string) string {
 }
 
 func (m MysqlDialect) SqlType(cc ColumnConfig) (string, error) {
+	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
-		return "INTEGER", nil
+		typ = "INTEGER"
 	case columnTypeString:
-		return "VARCHAR(255)", nil // FIXME:
+		typ = fmt.Sprintf("VARCHAR(%d)", cc.Size())
 	case columnTypeDate:
-		return "DATETIME", nil
+		typ = "DATETIME"
 	case columnTypeFloat:
-		return "FLOAT", nil
+		typ = "FLOAT"
 	case columnTypeBool:
-		return "BOOLEAN", nil
+		typ = "BOOLEAN"
 	case columnTypeBytes:
-		return "BLOB", nil
+		typ = "BLOB"
 	}
 
-	return "", newError("unknown column type")
+	if typ == "" {
+		return "", newError("unknown column type")
+	} else {
+		return typ, nil
+	}
 }
 
 func (m MysqlDialect) ColumnOptionToString(co ColumnOption) (string, error) {
@@ -123,25 +129,30 @@ func (m PostgresDialect) QuoteField(field string) string {
 }
 
 func (m PostgresDialect) SqlType(cc ColumnConfig) (string, error) {
+	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
 		if cc.HasOption(CO_AutoIncrement) {
-			return "SERIAL", nil
+			typ = "SERIAL"
 		}
-		return "BIGINT", nil
+		typ = "BIGINT"
 	case columnTypeString:
-		return "VARCHAR(255)", nil // FIXME:
+		typ = fmt.Sprintf("VARCHAR(%d)", cc.Size())
 	case columnTypeDate:
-		return "TIMESTAMP", nil
+		typ = "TIMESTAMP"
 	case columnTypeFloat:
-		return "REAL", nil
+		typ = "REAL"
 	case columnTypeBool:
-		return "BOOLEAN", nil
+		typ = "BOOLEAN"
 	case columnTypeBytes:
-		return "BYTEA", nil
+		typ = "BYTEA"
 	}
 
-	return "", newError("unknown column type")
+	if typ == "" {
+		return "", newError("unknown column type")
+	} else {
+		return typ, nil
+	}
 }
 
 func (m PostgresDialect) ColumnOptionToString(co ColumnOption) (string, error) {

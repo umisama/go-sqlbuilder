@@ -11,7 +11,7 @@ func TestInsert(t *testing.T) {
 	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", CO_PrimaryKey),
-		StringColumn("str"),
+		StringColumn("str", 256),
 		BoolColumn("bool"),
 		FloatColumn("float"),
 		DateColumn("date"),
