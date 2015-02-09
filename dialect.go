@@ -134,8 +134,9 @@ func (m PostgresDialect) SqlType(cc ColumnConfig) (string, error) {
 	case columnTypeInt:
 		if cc.HasOption(CO_AutoIncrement) {
 			typ = "SERIAL"
+		} else {
+			typ = "BIGINT"
 		}
-		typ = "BIGINT"
 	case columnTypeString:
 		typ = fmt.Sprintf("VARCHAR(%d)", cc.Size())
 	case columnTypeDate:
