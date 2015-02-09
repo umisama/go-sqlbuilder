@@ -10,9 +10,11 @@ func TestBinaryCondition(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("test1"),
-		IntColumn("test2"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
 	)
 
 	type testcase struct {
@@ -75,7 +77,7 @@ func TestBinaryCondition(t *testing.T) {
 			nil,
 		}, {
 			// case for fail
-			table1.C("id").In(NewTable("DUMMY TABLE", StringColumn("id", 256))),
+			table1.C("id").In(NewTable("DUMMY TABLE", StringColumn("id", nil))),
 			``,
 			[]interface{}{},
 			newError("got %T type, but literal is not supporting this"),
@@ -95,9 +97,11 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("test1"),
-		IntColumn("test2"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
 	)
 
 	type testcase struct {
@@ -160,7 +164,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 			nil,
 		}, {
 			// case for fail
-			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE", StringColumn("id", 256))),
+			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE", StringColumn("id", nil))),
 			``,
 			[]interface{}{},
 			newError("unsupported type"),
@@ -180,9 +184,11 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 func TestAndCondition(t *testing.T) {
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("test1"),
-		IntColumn("test2"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
 	)
 	eq1 := table1.C("id").Eq(table1.C("test1"))
 	eq2 := table1.C("id").Eq(1)
@@ -206,9 +212,11 @@ func TestAndCondition(t *testing.T) {
 func TestOrCondition(t *testing.T) {
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("test1"),
-		IntColumn("test2"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
 	)
 	eq1 := table1.C("id").Eq(table1.C("test1"))
 	eq2 := table1.C("id").Eq(1)

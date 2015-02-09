@@ -13,9 +13,7 @@ type ColumnConfig interface {
 	toColumn(Table) Column
 	Name() string
 	Type() columnType
-	Options() []ColumnOption
-	HasOption(ColumnOption) bool
-	Size() int
+	Option() *ColumnOption
 }
 
 type columnType int
@@ -87,16 +85,15 @@ func (t columnType) CapableTypes() []reflect.Type {
 	return []reflect.Type{}
 }
 
-// ColumnOption represents options for columns. ex: primary key.
-// Use const CO_*
-type ColumnOption int
-
-const (
-	CO_PrimaryKey ColumnOption = iota
-	CO_NotNull
-	CO_Unique
-	CO_AutoIncrement
-)
+// ColumnOption represents option for a column. ex: primary key.
+type ColumnOption struct {
+	PrimaryKey    bool
+	NotNull       bool
+	Unique        bool
+	AutoIncrement bool
+	Size          int
+	//Default       interface{}
+}
 
 // ColumnList represents list of Column.
 type ColumnList []Column
@@ -140,8 +137,7 @@ type Column interface {
 type columnConfigImpl struct {
 	name string
 	typ  columnType
-	size int // size for varchar column
-	opts []ColumnOption
+	opt  *ColumnOption
 }
 
 func (c *columnConfigImpl) Name() string {
@@ -152,17 +148,11 @@ func (c *columnConfigImpl) Type() columnType {
 	return c.typ
 }
 
-func (c *columnConfigImpl) Options() []ColumnOption {
-	return c.opts
-}
-
-func (c *columnConfigImpl) HasOption(trg ColumnOption) bool {
-	for _, v := range c.opts {
-		if v == trg {
-			return true
-		}
+func (c *columnConfigImpl) Option() *ColumnOption {
+	if c.opt == nil {
+		return &ColumnOption{}
 	}
-	return false
+	return c.opt
 }
 
 func (m *columnConfigImpl) toColumn(table Table) Column {
@@ -195,7 +185,7 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 		return false
 	}
 	if reflect.ValueOf(lit).IsNil() {
-		return !m.HasOption(CO_NotNull)
+		return !m.opt.NotNull
 	}
 
 	valt := reflect.TypeOf(lit.Raw())
@@ -205,10 +195,6 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 		}
 	}
 	return false
-}
-
-func (m *columnConfigImpl) Size() int {
-	return m.size
 }
 
 func (m *columnImpl) serialize(bldr *builder) {
@@ -221,57 +207,56 @@ func (m *columnImpl) serialize(bldr *builder) {
 }
 
 // IntColumn creates config for INTEGER type column.
-func IntColumn(name string, opts ...ColumnOption) ColumnConfig {
+func IntColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeInt,
-		opts: opts,
+		opt:  opt,
 	}
 }
 
 // StringColumn creates config for TEXT or VARCHAR type column.
-func StringColumn(name string, size int, opts ...ColumnOption) ColumnConfig {
+func StringColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeString,
-		opts: opts,
-		size: size,
+		opt:  opt,
 	}
 }
 
 // DateColumn creates config for DATETIME type column.
-func DateColumn(name string, opts ...ColumnOption) ColumnConfig {
+func DateColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeDate,
-		opts: opts,
+		opt:  opt,
 	}
 }
 
 // FloatColumn creates config for REAL or FLOAT type column.
-func FloatColumn(name string, opts ...ColumnOption) ColumnConfig {
+func FloatColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeFloat,
-		opts: opts,
+		opt:  opt,
 	}
 }
 
 // BoolColumn creates config for BOOLEAN type column.
-func BoolColumn(name string, opts ...ColumnOption) ColumnConfig {
+func BoolColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeBool,
-		opts: opts,
+		opt:  opt,
 	}
 }
 
 // BytesColumn creates config for BLOB type column.
-func BytesColumn(name string, opts ...ColumnOption) ColumnConfig {
+func BytesColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
 		typ:  columnTypeBytes,
-		opts: opts,
+		opt:  opt,
 	}
 }
 
@@ -343,9 +328,7 @@ func (m *errorColumn) column_name() string {
 }
 
 func (m *errorColumn) config() ColumnConfig {
-	return &columnConfigImpl{
-		opts: make([]ColumnOption, 0),
-	}
+	return nil
 }
 
 func (m *errorColumn) acceptType(interface{}) bool {

@@ -140,23 +140,19 @@ func (m createTableColumnList) serialize(bldr *builder) {
 		bldr.Append(" ")
 
 		// SQL data name
-		str, err := dialect.SqlType(cc)
+		str, err := dialect.ColumnTypeToString(cc)
 		if err != nil {
 			bldr.SetError(err)
 		}
 		bldr.Append(str)
 
-		// Column options
-		for _, opt := range cc.Options() {
-			str, err := dialect.ColumnOptionToString(opt)
-			if err != nil {
-				bldr.SetError(err)
-			}
-			if len(str) != 0 {
-				bldr.Append(" " + str)
-			}
+		str, err = dialect.ColumnOptionToString(cc.Option())
+		if err != nil {
+			bldr.SetError(err)
 		}
-
+		if len(str) != 0 {
+			bldr.Append(" " + str)
+		}
 	}
 }
 

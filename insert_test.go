@@ -10,12 +10,16 @@ func TestInsert(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey),
-		StringColumn("str", 256),
-		BoolColumn("bool"),
-		FloatColumn("float"),
-		DateColumn("date"),
-		BytesColumn("bytes"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		StringColumn("str", &ColumnOption{
+			Size: 255,
+		}),
+		BoolColumn("bool", nil),
+		FloatColumn("float", nil),
+		DateColumn("date", nil),
+		BytesColumn("bytes", nil),
 	)
 
 	type testcase struct {

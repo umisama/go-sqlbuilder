@@ -50,9 +50,11 @@ Sqlbuilder needs table definition to strict query generating.
 ```go
 table1  := sb.NewTable(
 	"TABLE_A",
-	sb.IntColumn("id", sb.CO_PrimaryKey),
-	sb.StrColumn("name")
-	sb.IntColumn("age"),
+	sb.IntColumn("id", &sb.ColumnOption{
+		PrimaryKey: true,
+	}),
+	sb.StrColumn("name", nil)
+	sb.IntColumn("age", nil),
 )
 ```
 

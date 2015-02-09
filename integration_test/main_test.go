@@ -18,21 +18,36 @@ var db *sql.DB
 // Table for testing
 var tbl_person = sb.NewTable(
 	"PERSON",
-	sb.IntColumn("id", sb.CO_PrimaryKey),
-	sb.StringColumn("name", 255, sb.CO_Unique),
-	sb.DateColumn("birth"),
+	sb.IntColumn("id", &sb.ColumnOption{
+		PrimaryKey: true,
+	}),
+	sb.StringColumn("name", &sb.ColumnOption{
+		Unique: true,
+		Size:   255,
+	}),
+	sb.DateColumn("birth", nil),
 )
 var tbl_phone = sb.NewTable(
 	"PHONE",
-	sb.IntColumn("id", sb.CO_PrimaryKey, sb.CO_AutoIncrement),
-	sb.IntColumn("person_id"),
-	sb.StringColumn("number", 255),
+	sb.IntColumn("id", &sb.ColumnOption{
+		PrimaryKey:    true,
+		AutoIncrement: true,
+	}),
+	sb.IntColumn("person_id", nil),
+	sb.StringColumn("number", &sb.ColumnOption{
+		Size: 255,
+	}),
 )
 var tbl_email = sb.NewTable(
 	"EMAIL",
-	sb.IntColumn("id", sb.CO_PrimaryKey, sb.CO_AutoIncrement),
-	sb.IntColumn("person_id"),
-	sb.StringColumn("address", 255),
+	sb.IntColumn("id", &sb.ColumnOption{
+		PrimaryKey:    true,
+		AutoIncrement: true,
+	}),
+	sb.IntColumn("person_id", nil),
+	sb.StringColumn("address", &sb.ColumnOption{
+		Size: 255,
+	}),
 )
 
 // Data for testing

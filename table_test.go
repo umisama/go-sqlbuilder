@@ -18,7 +18,7 @@ func TestTable(t *testing.T) {
 	a.NotPanics(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
-			IntColumn("id"),
+			IntColumn("id", nil),
 		)
 	})
 	a.NotNil(table1)
@@ -29,17 +29,23 @@ func TestJoinTable(t *testing.T) {
 
 	l_table := NewTable(
 		"LEFT_TABLE",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("right_id"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("right_id", nil),
 	)
 	r_table := NewTable(
 		"RIGHT_TABLE",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("value"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("value", nil),
 	)
 	rr_table := NewTable(
 		"RIGHTRIGHT_TABLE",
-		IntColumn("id", CO_PrimaryKey),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
 	)
 
 	// inner join

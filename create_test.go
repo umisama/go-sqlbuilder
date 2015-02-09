@@ -10,9 +10,16 @@ func TestCreate(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey, CO_AutoIncrement),
-		IntColumn("test1", CO_Unique),
-		StringColumn("test2", 255),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey:    true,
+			AutoIncrement: true,
+		}),
+		IntColumn("test1", &ColumnOption{
+			Unique: true,
+		}),
+		StringColumn("test2", &ColumnOption{
+			Size: 255,
+		}),
 	)
 	table_zero_columns := &table{
 		name:    "ZERO_TABLE",

@@ -9,9 +9,11 @@ func TestDelete(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
-		IntColumn("id", CO_PrimaryKey),
-		IntColumn("test1"),
-		IntColumn("test2"),
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
 	)
 
 	type testcase struct {

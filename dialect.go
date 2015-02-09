@@ -9,8 +9,8 @@ type Dialect interface {
 	QuerySuffix() string
 	BindVar(i int) string
 	QuoteField(field string) string
-	SqlType(ColumnConfig) (string, error)
-	ColumnOptionToString(ColumnOption) (string, error)
+	ColumnTypeToString(ColumnConfig) (string, error)
+	ColumnOptionToString(*ColumnOption) (string, error)
 }
 
 type SqliteDialect struct{}
@@ -27,38 +27,53 @@ func (m SqliteDialect) QuoteField(field string) string {
 	return "\"" + field + "\""
 }
 
-func (m SqliteDialect) SqlType(cc ColumnConfig) (string, error) {
+func (m SqliteDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
+	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
-		return "INTEGER", nil
+		typ = "INTEGER"
 	case columnTypeString:
-		return "TEXT", nil
+		typ = "TEXT"
 	case columnTypeDate:
-		return "DATE", nil
+		typ = "DATE"
 	case columnTypeFloat:
-		return "REAL", nil
+		typ = "REAL"
 	case columnTypeBool:
-		return "BOOLEAN", nil
+		typ = "BOOLEAN"
 	case columnTypeBytes:
-		return "BLOB", nil
+		typ = "BLOB"
 	}
-
-	return "", newError("unknown column type")
+	if typ == "" {
+		return "", newError("unknown column type")
+	} else {
+		return typ, nil
+	}
 }
 
-func (m SqliteDialect) ColumnOptionToString(co ColumnOption) (string, error) {
-	switch co {
-	case CO_PrimaryKey:
-		return "PRIMARY KEY", nil
-	case CO_AutoIncrement:
-		return "AUTOINCREMENT", nil
-	case CO_NotNull:
-		return "NOT NULL", nil
-	case CO_Unique:
-		return "UNIQUE", nil
+func (m SqliteDialect) ColumnOptionToString(co *ColumnOption) (string, error) {
+	apnd := func(str, opt string) string {
+		if len(str) != 0 {
+			str += " "
+		}
+		str += opt
+		return str
 	}
 
-	return "", newError("unknown column option")
+	opt := ""
+	if co.PrimaryKey {
+		opt = apnd(opt, "PRIMARY KEY")
+	}
+	if co.AutoIncrement {
+		opt = apnd(opt, "AUTOINCREMENT")
+	}
+	if co.NotNull {
+		opt = apnd(opt, "NOT NULL")
+	}
+	if co.Unique {
+		opt = apnd(opt, "UNIQUE")
+	}
+
+	return opt, nil
 }
 
 type MysqlDialect struct{}
@@ -75,13 +90,13 @@ func (m MysqlDialect) QuoteField(field string) string {
 	return "`" + field + "`"
 }
 
-func (m MysqlDialect) SqlType(cc ColumnConfig) (string, error) {
+func (m MysqlDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
 	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
 		typ = "INTEGER"
 	case columnTypeString:
-		typ = fmt.Sprintf("VARCHAR(%d)", cc.Size())
+		typ = fmt.Sprintf("VARCHAR(%d)", cc.Option().Size)
 	case columnTypeDate:
 		typ = "DATETIME"
 	case columnTypeFloat:
@@ -99,19 +114,30 @@ func (m MysqlDialect) SqlType(cc ColumnConfig) (string, error) {
 	}
 }
 
-func (m MysqlDialect) ColumnOptionToString(co ColumnOption) (string, error) {
-	switch co {
-	case CO_PrimaryKey:
-		return "PRIMARY KEY", nil
-	case CO_AutoIncrement:
-		return "AUTO_INCREMENT", nil
-	case CO_NotNull:
-		return "NOT NULL", nil
-	case CO_Unique:
-		return "UNIQUE", nil
+func (m MysqlDialect) ColumnOptionToString(co *ColumnOption) (string, error) {
+	apnd := func(str, opt string) string {
+		if len(str) != 0 {
+			str += " "
+		}
+		str += opt
+		return str
 	}
 
-	return "", newError("unknown column option")
+	opt := ""
+	if co.PrimaryKey {
+		opt = apnd(opt, "PRIMARY KEY")
+	}
+	if co.AutoIncrement {
+		opt = apnd(opt, "AUTO_INCREMENT")
+	}
+	if co.NotNull {
+		opt = apnd(opt, "NOT NULL")
+	}
+	if co.Unique {
+		opt = apnd(opt, "UNIQUE")
+	}
+
+	return opt, nil
 }
 
 type PostgresDialect struct{}
@@ -128,17 +154,17 @@ func (m PostgresDialect) QuoteField(field string) string {
 	return "\"" + field + "\""
 }
 
-func (m PostgresDialect) SqlType(cc ColumnConfig) (string, error) {
+func (m PostgresDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
 	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
-		if cc.HasOption(CO_AutoIncrement) {
+		if cc.Option().AutoIncrement {
 			typ = "SERIAL"
 		} else {
 			typ = "BIGINT"
 		}
 	case columnTypeString:
-		typ = fmt.Sprintf("VARCHAR(%d)", cc.Size())
+		typ = fmt.Sprintf("VARCHAR(%d)", cc.Option().Size)
 	case columnTypeDate:
 		typ = "TIMESTAMP"
 	case columnTypeFloat:
@@ -156,17 +182,28 @@ func (m PostgresDialect) SqlType(cc ColumnConfig) (string, error) {
 	}
 }
 
-func (m PostgresDialect) ColumnOptionToString(co ColumnOption) (string, error) {
-	switch co {
-	case CO_PrimaryKey:
-		return "PRIMARY KEY", nil
-	case CO_AutoIncrement:
-		return "", nil
-	case CO_NotNull:
-		return "NOT NULL", nil
-	case CO_Unique:
-		return "UNIQUE", nil
+func (m PostgresDialect) ColumnOptionToString(co *ColumnOption) (string, error) {
+	apnd := func(str, opt string) string {
+		if len(str) != 0 {
+			str += " "
+		}
+		str += opt
+		return str
 	}
 
-	return "", newError("unknown column option")
+	opt := ""
+	if co.PrimaryKey {
+		opt = apnd(opt, "PRIMARY KEY")
+	}
+	if co.AutoIncrement {
+		// do nothing
+	}
+	if co.NotNull {
+		opt = apnd(opt, "NOT NULL")
+	}
+	if co.Unique {
+		opt = apnd(opt, "UNIQUE")
+	}
+
+	return opt, nil
 }
