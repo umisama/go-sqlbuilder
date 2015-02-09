@@ -47,6 +47,12 @@ func TestSelect(t *testing.T) {
 		[]interface{}{},
 		false,
 	}, {
+		Select(Star).
+			From(table1),
+		`SELECT * FROM "TABLE_A";`,
+		[]interface{}{},
+		false,
+	}, {
 		Select(table1.C("test1"), table1.C("test2")).
 			From(nil),
 		``,

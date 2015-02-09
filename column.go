@@ -212,7 +212,11 @@ func (m *columnConfigImpl) Size() int {
 }
 
 func (m *columnImpl) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
+	if m == Star {
+		bldr.Append("*")
+	} else {
+		bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
+	}
 	return
 }
 

@@ -10,6 +10,9 @@ import (
 
 var dialect Dialect
 
+// Star reprecents
+var Star Column = &columnImpl{nil, nil}
+
 // Statement reprecents a statement(SELECT/INSERT/UPDATE and other)
 type Statement interface {
 	ToSql() (query string, attrs []interface{}, err error)
