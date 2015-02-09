@@ -327,3 +327,68 @@ func (b ColumnList) serialize(bldr *builder) {
 	}
 	return
 }
+
+type errorColumn struct {
+	err error
+}
+
+func newErrorColumn(err error) Column {
+	return &errorColumn{
+		err: err,
+	}
+}
+
+func (m *errorColumn) column_name() string {
+	return ""
+}
+
+func (m *errorColumn) config() ColumnConfig {
+	return &columnConfigImpl{
+		opts: make([]ColumnOption, 0),
+	}
+}
+
+func (m *errorColumn) acceptType(interface{}) bool {
+	return false
+}
+
+func (m *errorColumn) serialize(bldr *builder) {
+	bldr.SetError(m.err)
+	return
+}
+
+func (left *errorColumn) Eq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "=")
+}
+
+func (left *errorColumn) NotEq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "<>")
+}
+
+func (left *errorColumn) Gt(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, ">")
+}
+
+func (left *errorColumn) GtEq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, ">=")
+}
+
+func (left *errorColumn) Lt(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "<")
+}
+
+func (left *errorColumn) LtEq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "<=")
+}
+
+func (left *errorColumn) Like(right string) Condition {
+	return newBinaryOperationCondition(left, right, " LIKE ")
+}
+
+func (left *errorColumn) Between(lower, higher interface{}) Condition {
+	return newBetweenCondition(left, lower, higher)
+}
+
+func (left *errorColumn) In(val ...interface{}) Condition {
+	return newInCondition(left, val...)
+}

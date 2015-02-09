@@ -83,7 +83,7 @@ func (m *table) C(name string) Column {
 		}
 	}
 
-	return nil
+	return newErrorColumn(newError("column %s.%s was not found.", m.name, name))
 }
 
 func (m *table) Name() string {
@@ -131,11 +131,22 @@ func (m *table) FullOuterJoin(right Table, on Condition) Table {
 }
 
 func (m *joinTable) C(name string) Column {
-	col := m.left.C(name)
-	if col != nil {
-		return col
+	l_col := m.left.C(name)
+	r_col := m.right.C(name)
+
+	_, l_err := l_col.(*errorColumn)
+	_, r_err := r_col.(*errorColumn)
+
+	switch {
+	case l_err && r_err:
+		return newErrorColumn(newError("column %s was not found.", name))
+	case l_err && !r_err:
+		return r_col
+	case !l_err && r_err:
+		return l_col
+	default:
+		return newErrorColumn(newError("column %s was duplicated.", name))
 	}
-	return m.right.C(name)
 }
 
 func (m *joinTable) Name() string {

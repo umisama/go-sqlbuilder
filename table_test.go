@@ -35,6 +35,7 @@ func TestJoinTable(t *testing.T) {
 	r_table := NewTable(
 		"RIGHT_TABLE",
 		IntColumn("id", CO_PrimaryKey),
+		IntColumn("value"),
 	)
 	rr_table := NewTable(
 		"RIGHTRIGHT_TABLE",
@@ -74,8 +75,10 @@ func TestJoinTable(t *testing.T) {
 	a.Empty(b.Args())
 
 	// joined table column
-	a.Equal(joinedTable.C("id"), l_table.C("id"))
-	a.Equal(joinedTable.C("right_id"), l_table.C("right_id"))
+	a.Equal(l_table.C("right_id"), joinedTable.C("right_id"))
+	a.Equal(r_table.C("value"), joinedTable.C("value"))
+	a.IsType(&errorColumn{}, joinedTable.C("not_exist_column"))
+	a.IsType(&errorColumn{}, joinedTable.C("id"))
 
 	// combination
 	b = newBuilder()
