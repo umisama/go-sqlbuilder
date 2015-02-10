@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+func TestSqlFuncImplements(t *testing.T) {
+	a := assert.New(t)
+	a.Implements(new(Column), &columnImpl{})
+}
+
 func TestSqlFunc(t *testing.T) {
 	a := assert.New(t)
 	b := newBuilder()

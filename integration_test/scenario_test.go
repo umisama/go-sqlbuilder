@@ -105,6 +105,67 @@ func TestSelectSimple(t *testing.T) {
 	a.Equal(got_persons, persons)
 }
 
+func TestSelectJoinedWithAlias(t *testing.T) {
+	a := assert.New(t)
+	type PersonEmail struct {
+		Id    int
+		Name  string
+		Birth time.Time
+		Email string
+	}
+	expect := []PersonEmail{{
+		Id:    1,
+		Name:  "Rintaro Okabe",
+		Birth: time.Date(1991, time.December, 14, 0, 0, 0, 0, time.UTC),
+		Email: "sg-epk@jtk93.x29.jp",
+	}, {
+		Id:    1,
+		Name:  "Rintaro Okabe",
+		Birth: time.Date(1991, time.December, 14, 0, 0, 0, 0, time.UTC),
+		Email: "okarin@example.org",
+	}, {
+		Id:    2,
+		Name:  "Mayuri Shiina",
+		Birth: time.Date(1994, time.February, 1, 0, 0, 0, 0, time.UTC),
+		Email: "mayusii@example.org",
+	}, {
+		Id:    3,
+		Name:  "Itaru Hashida",
+		Birth: time.Date(1991, time.May, 19, 0, 0, 0, 0, time.UTC),
+		Email: "hashida@example.org",
+	}}
+
+	tbl_person_email := tbl_person.LeftOuterJoin(tbl_email, tbl_email.C("person_id").Eq(tbl_person.C("id")))
+	col_id := tbl_person.C("id").As("id")
+	col_name := tbl_person.C("name").As("name")
+	col_birth := tbl_person.C("birth").As("birth")
+	col_email := tbl_email.C("address").As("email")
+	query, args, err := sb.Select(col_id, col_name, col_birth, col_email).
+		From(tbl_person_email).
+		OrderBy(false, col_id).
+		ToSql()
+	a.NoError(err)
+	rows, err := db.Query(query, args...)
+	a.NoError(err)
+
+	got_persons := make([]PersonEmail, 0)
+	if a.NotNil(rows) {
+		for rows.Next() {
+			id, name, birth, email := 0, "", time.Time{}, ""
+			err := rows.Scan(&id, &name, &birth, &email)
+			a.NoError(err)
+			got_persons = append(got_persons, PersonEmail{
+				Id:    id,
+				Name:  name,
+				Birth: birth.UTC(),
+				Email: email,
+			})
+		}
+		rows.Close()
+	}
+	a.Equal(expect, got_persons)
+}
+
 func TestSelectJoined(t *testing.T) {
 	a := assert.New(t)
 	type PersonEmail struct {

@@ -15,6 +15,7 @@ func TestSelect(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
+	acol_id := table1.C("id").As("tbl1id")
 
 	type testcase struct {
 		stmt  Statement
@@ -47,6 +48,13 @@ func TestSelect(t *testing.T) {
 			From(table1),
 		`SELECT "TABLE_A"."test1", "TABLE_A"."test2" FROM "TABLE_A";`,
 		[]interface{}{},
+		false,
+	}, {
+		Select(acol_id).
+			From(table1).
+			Where(acol_id.Eq(1)),
+		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=?;`,
+		[]interface{}{1},
 		false,
 	}, {
 		Select(Star).

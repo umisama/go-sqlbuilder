@@ -106,6 +106,9 @@ type Column interface {
 	config() ColumnConfig
 	acceptType(interface{}) bool
 
+	// As creates Column alias.
+	As(alias string) Column
+
 	// Eq creates Condition for "column==right".  Type for right is column's one or other Column.
 	Eq(right interface{}) Condition
 
@@ -132,6 +135,12 @@ type Column interface {
 
 	// In creates Condition for "column IN (values[0], values[1] ...)".  Type for values is column's one or other Column.
 	In(values ...interface{}) Condition
+}
+
+type aliasedColumn interface {
+	Column
+	column_alias() string
+	source() Column
 }
 
 type columnConfigImpl struct {
@@ -204,6 +213,13 @@ func (m *columnImpl) serialize(bldr *builder) {
 		bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
 	}
 	return
+}
+
+func (m *columnImpl) As(alias string) Column {
+	return &aliasColumn{
+		column: m,
+		alias:  alias,
+	}
 }
 
 // IntColumn creates config for INTEGER type column.
@@ -340,6 +356,10 @@ func (m *errorColumn) serialize(bldr *builder) {
 	return
 }
 
+func (m *errorColumn) As(string) Column {
+	return m
+}
+
 func (left *errorColumn) Eq(right interface{}) Condition {
 	return newBinaryOperationCondition(left, right, "=")
 }
@@ -373,5 +393,78 @@ func (left *errorColumn) Between(lower, higher interface{}) Condition {
 }
 
 func (left *errorColumn) In(val ...interface{}) Condition {
+	return newInCondition(left, val...)
+}
+
+type aliasColumn struct {
+	column Column
+	alias  string
+}
+
+func (m *aliasColumn) column_name() string {
+	return m.alias
+}
+
+func (m *aliasColumn) config() ColumnConfig {
+	return m.column.config()
+}
+
+func (m *aliasColumn) acceptType(val interface{}) bool {
+	return m.column.acceptType(val)
+}
+
+func (m *aliasColumn) As(alias string) Column {
+	return &aliasColumn{
+		column: m,
+		alias:  alias,
+	}
+}
+
+func (m *aliasColumn) serialize(bldr *builder) {
+	bldr.Append(dialect.QuoteField(m.alias))
+	return
+}
+
+func (m *aliasColumn) column_alias() string {
+	return m.alias
+}
+
+func (m *aliasColumn) source() Column {
+	return m.column
+}
+
+func (left *aliasColumn) Eq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "=")
+}
+
+func (left *aliasColumn) NotEq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "<>")
+}
+
+func (left *aliasColumn) Gt(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, ">")
+}
+
+func (left *aliasColumn) GtEq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, ">=")
+}
+
+func (left *aliasColumn) Lt(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "<")
+}
+
+func (left *aliasColumn) LtEq(right interface{}) Condition {
+	return newBinaryOperationCondition(left, right, "<=")
+}
+
+func (left *aliasColumn) Like(right string) Condition {
+	return newBinaryOperationCondition(left, right, " LIKE ")
+}
+
+func (left *aliasColumn) Between(lower, higher interface{}) Condition {
+	return newBetweenCondition(left, lower, higher)
+}
+
+func (left *aliasColumn) In(val ...interface{}) Condition {
 	return newInCondition(left, val...)
 }

@@ -2,7 +2,7 @@ package sqlbuilder
 
 // SelectStatement represents a SELECT statement.
 type SelectStatement struct {
-	columns    []serializable
+	columns    selectColumnList
 	from       Table
 	where      Condition
 	distinct   bool
@@ -17,12 +17,8 @@ type SelectStatement struct {
 // Select returns new SELECT statement with set result columns.
 // Get all columns (use *) if columns's length is 0.
 func Select(columns ...Column) *SelectStatement {
-	ex_column := make([]serializable, len(columns))
-	for i := range columns {
-		ex_column[i] = columns[i]
-	}
 	return &SelectStatement{
-		columns: ex_column,
+		columns: selectColumnList(columns),
 	}
 }
 
@@ -103,7 +99,7 @@ func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.Append("DISTINCT ")
 	}
 
-	bldr.AppendItems(b.columns, ", ")
+	bldr.AppendItem(b.columns)
 
 	// FROM
 	if b.from != nil {

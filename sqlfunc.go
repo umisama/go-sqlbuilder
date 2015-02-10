@@ -22,6 +22,13 @@ func Func(name string, args ...Column) SqlFunc {
 	}
 }
 
+func (m *sqlFuncImpl) As(alias string) Column {
+	return &aliasColumn{
+		column: m,
+		alias:  alias,
+	}
+}
+
 func (m *sqlFuncImpl) column_name() string {
 	return m.name
 }
