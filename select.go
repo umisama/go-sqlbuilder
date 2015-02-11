@@ -85,14 +85,7 @@ func (b *SelectStatement) Offset(offset int) *SelectStatement {
 	return b
 }
 
-// ToSql generates query string, placeholder arguments, and returns err on errors.
-func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) {
-	bldr := newBuilder()
-	defer func() {
-		bldr.Append(dialect.QuerySuffix())
-		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
-	}()
-
+func (b *SelectStatement) serialize(bldr *builder) {
 	// SELECT COLUMN
 	bldr.Append("SELECT ")
 	if b.distinct {
@@ -149,4 +142,117 @@ func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.AppendValue(b.offset)
 	}
 	return
+}
+
+// ToSql generates query string, placeholder arguments, and returns err on errors.
+func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) {
+	bldr := newBuilder()
+	defer func() {
+		bldr.Append(dialect.QuerySuffix())
+		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
+	}()
+	bldr.AppendItem(b)
+	return
+}
+
+func (m *SelectStatement) ToSubquery(alias string) Table {
+	return newSubquery(m, alias)
+}
+
+type subquery struct {
+	stat  *SelectStatement
+	alias string
+	err   error
+}
+
+func newSubquery(s *SelectStatement, alias string) *subquery {
+	m := &subquery{
+		stat:  s,
+		alias: alias,
+	}
+
+	if len(alias) == 0 {
+		m.err = newError("alias is empty")
+	}
+	return m
+}
+
+func (m *subquery) serialize(bldr *builder) {
+	if m.err != nil {
+		bldr.SetError(m.err)
+	}
+
+	bldr.Append("( ")
+	bldr.AppendItem(m.stat)
+	bldr.Append(" ) AS " + m.alias)
+	return
+}
+
+func (m *subquery) Name() string {
+	return m.alias
+}
+
+func (m *subquery) C(name string) Column {
+	for _, col := range m.stat.columns {
+		if ac, ok := col.(aliasedColumn); ok {
+			if ac.column_alias() == name {
+				return col.config().toColumn(m)
+			}
+		}
+		if col.column_name() == name {
+			return col.config().toColumn(m)
+		}
+	}
+	return newErrorColumn(newError("column %s was not found.", name))
+}
+
+func (m *subquery) Columns() []Column {
+	l := make([]Column, len(m.stat.columns))
+	for _, col := range m.stat.columns {
+		if _, ok := col.(aliasedColumn); ok {
+			l = append(l, col.config().toColumn(m))
+		}
+		l = append(l, col.config().toColumn(m))
+	}
+	return nil
+}
+
+func (m *subquery) InnerJoin(Table, Condition) Table {
+	m.err = newError("Subquery can not join")
+	return m
+}
+
+func (m *subquery) LeftOuterJoin(Table, Condition) Table {
+	m.err = newError("Subquery can not join")
+	return m
+}
+
+func (m *subquery) RightOuterJoin(Table, Condition) Table {
+	m.err = newError("Subquery can not join")
+	return m
+}
+
+func (m *subquery) FullOuterJoin(Table, Condition) Table {
+	m.err = newError("Subquery can not join")
+	return m
+}
+
+type selectColumnList []Column
+
+func (l selectColumnList) serialize(bldr *builder) {
+	first := true
+	for _, col := range l {
+		if first {
+			first = false
+		} else {
+			bldr.Append(", ")
+		}
+		if ac, ok := col.(aliasedColumn); ok {
+			bldr.AppendItem(ac.source())
+			bldr.Append(" AS ")
+			bldr.AppendItem(col)
+		} else {
+			bldr.AppendItem(col)
+		}
+	}
 }

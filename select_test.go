@@ -88,6 +88,27 @@ func TestSelect(t *testing.T) {
 	}
 }
 
+func TestSubquery(t *testing.T) {
+	a := assert.New(t)
+	table1 := NewTable(
+		"TABLE_A",
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
+	)
+
+	subquery := Select(table1.C("id")).From(table1).ToSubquery("SQ1")
+	query, attrs, err := Select(subquery.C("id")).
+		From(subquery).
+		Where(subquery.C("id").Eq(1)).ToSql()
+
+	a.Equal(`SELECT "SQ1"."id" FROM ( SELECT "TABLE_A"."id" FROM "TABLE_A" ) AS SQ1 WHERE "SQ1"."id"=?;`, query)
+	a.Equal([]interface{}{1}, attrs)
+	a.NoError(err)
+}
+
 func BenchmarkSelect(b *testing.B) {
 	table1 := NewTable(
 		"TABLE_A",

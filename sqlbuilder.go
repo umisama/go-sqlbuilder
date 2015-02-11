@@ -94,6 +94,15 @@ func (b *builder) AppendValue(val interface{}) {
 	return
 }
 
+func (b *builder) AppendValuesWithoutPlaceholder(val ...interface{}) {
+	if b.err != nil {
+		return
+	}
+
+	b.args = append(b.args, val...)
+	return
+}
+
 func (b *builder) AppendItems(parts []serializable, sep string) {
 	if b.err != nil {
 		return

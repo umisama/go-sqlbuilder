@@ -17,10 +17,10 @@
    * Sqlite3([mattn/go-sqlite3](https://github.com/mattn/go-sqlite3))
    * MySQL([ziutek/mymysql](https://github.com/ziutek/mymysql))
    * PostgresSQL([lib/pq](https://github.com/lib/pq))
+ * Subquery in SELECT FROM clause
 
 ## TODO
- * Support subquery
- * Table/Column alias
+ * Support union
 
 ## Quick start
 working on
