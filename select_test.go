@@ -57,6 +57,15 @@ func TestSelect(t *testing.T) {
 		[]interface{}{1},
 		false,
 	}, {
+		Select(acol_id).
+			From(table1).
+			Where(acol_id.Eq(1)).
+			OrderBy(false, table1.C("test1")).
+			OrderBy(true, table1.C("test2")),
+		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=? ORDER BY "TABLE_A"."test1" ASC, "TABLE_A"."test2" DESC;`,
+		[]interface{}{1},
+		false,
+	}, {
 		Select(Star).
 			From(table1),
 		`SELECT * FROM "TABLE_A";`,

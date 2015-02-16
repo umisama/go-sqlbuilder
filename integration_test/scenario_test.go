@@ -143,6 +143,7 @@ func TestSelectJoinedWithAlias(t *testing.T) {
 	query, args, err := sb.Select(col_id, col_name, col_birth, col_email).
 		From(tbl_person_email).
 		OrderBy(false, col_id).
+		OrderBy(false, tbl_email.C("id")).
 		ToSql()
 	a.NoError(err)
 	rows, err := db.Query(query, args...)

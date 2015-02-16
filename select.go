@@ -2,16 +2,15 @@ package sqlbuilder
 
 // SelectStatement represents a SELECT statement.
 type SelectStatement struct {
-	columns    selectColumnList
-	from       Table
-	where      Condition
-	distinct   bool
-	groupBy    []serializable
-	orderByAsc string
-	orderBy    []serializable
-	limit      int
-	offset     int
-	having     Condition
+	columns  selectColumnList
+	from     Table
+	where    Condition
+	distinct bool
+	groupBy  []serializable
+	orderBy  []serializable
+	limit    int
+	offset   int
+	having   Condition
 }
 
 // Select returns new SELECT statement with set result columns.
@@ -59,16 +58,12 @@ func (b *SelectStatement) Having(cond Condition) *SelectStatement {
 
 // OrderBy sets "ORDER BY" clause. Use descending order if the desc is true, by the columns.
 func (b *SelectStatement) OrderBy(desc bool, columns ...Column) *SelectStatement {
-	ex_column := make([]serializable, len(columns))
-	for i := range columns {
-		ex_column[i] = columns[i]
+	if b.orderBy == nil {
+		b.orderBy = make([]serializable, 0)
 	}
-	b.orderBy = ex_column
 
-	if desc {
-		b.orderByAsc = " DESC"
-	} else {
-		b.orderByAsc = " ASC"
+	for _, c := range columns {
+		b.orderBy = append(b.orderBy, newOrderBy(desc, c))
 	}
 	return b
 }
@@ -126,8 +121,7 @@ func (b *SelectStatement) serialize(bldr *builder) {
 	// ORDER BY
 	if b.orderBy != nil {
 		bldr.Append(" ORDER BY ")
-		bldr.AppendItems(b.orderBy, ",")
-		bldr.Append(b.orderByAsc)
+		bldr.AppendItems(b.orderBy, ", ")
 	}
 
 	// LIMIT
@@ -254,5 +248,26 @@ func (l selectColumnList) serialize(bldr *builder) {
 		} else {
 			bldr.AppendItem(col)
 		}
+	}
+}
+
+type orderBy struct {
+	column Column
+	desc   bool
+}
+
+func newOrderBy(desc bool, column Column) *orderBy {
+	return &orderBy{
+		column: column,
+		desc:   desc,
+	}
+}
+
+func (m *orderBy) serialize(bldr *builder) {
+	bldr.AppendItem(m.column)
+	if m.desc {
+		bldr.Append(" DESC")
+	} else {
+		bldr.Append(" ASC")
 	}
 }

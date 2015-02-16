@@ -2,13 +2,12 @@ package sqlbuilder
 
 // UpdateStatement represents a UPDATE statement.
 type UpdateStatement struct {
-	table      Table
-	set        []serializable
-	where      Condition
-	orderByAsc string
-	orderBy    []serializable
-	limit      int
-	offset     int
+	table   Table
+	set     []serializable
+	where   Condition
+	orderBy []serializable
+	limit   int
+	offset  int
 }
 
 // Update returns new UPDATE statement. The table is Table object to update.
@@ -45,16 +44,12 @@ func (b *UpdateStatement) Offset(offset int) *UpdateStatement {
 
 // OrderBy sets "ORDER BY" clause. Use descending order if the desc is true, by the columns.
 func (b *UpdateStatement) OrderBy(desc bool, columns ...Column) *UpdateStatement {
-	ex_column := make([]serializable, len(columns))
-	for i := range columns {
-		ex_column[i] = columns[i]
+	if b.orderBy == nil {
+		b.orderBy = make([]serializable, 0)
 	}
-	b.orderBy = ex_column
 
-	if desc {
-		b.orderByAsc = " DESC"
-	} else {
-		b.orderByAsc = " ASC"
+	for _, c := range columns {
+		b.orderBy = append(b.orderBy, newOrderBy(desc, c))
 	}
 	return b
 }
@@ -91,8 +86,7 @@ func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) 
 	// ORDER BY
 	if b.orderBy != nil {
 		bldr.Append(" ORDER BY ")
-		bldr.AppendItems(b.orderBy, ",")
-		bldr.Append(b.orderByAsc)
+		bldr.AppendItems(b.orderBy, ", ")
 	}
 
 	// LIMIT
