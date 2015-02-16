@@ -76,6 +76,21 @@ func TestBinaryCondition(t *testing.T) {
 			[]interface{}{1, 2},
 			nil,
 		}, {
+			table1.C("id").Eq(nil),
+			`"TABLE_A"."id" IS NULL`,
+			[]interface{}{},
+			nil,
+		}, {
+			table1.C("id").NotEq([]byte(nil)),
+			`"TABLE_A"."id" IS NOT NULL`,
+			[]interface{}{},
+			nil,
+		}, {
+			table1.C("id").Gt([]byte(nil)),
+			``,
+			[]interface{}{},
+			newError("NULL can not be used with %s operator"),
+		}, {
 			// case for fail
 			table1.C("id").In(NewTable("DUMMY TABLE", StringColumn("id", nil))),
 			``,

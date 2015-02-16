@@ -11,6 +11,7 @@ import (
 type literal interface {
 	serializable
 	Raw() interface{}
+	IsNil() bool
 }
 
 type literalImpl struct {
@@ -40,6 +41,20 @@ func (l *literalImpl) serialize(bldr *builder) {
 	return
 }
 
+func (l *literalImpl) IsNil() bool {
+	if l.raw == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(l.raw)
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		return v.IsNil()
+	default:
+		return false
+	}
+}
+
 // convert to sqldriver.Value(int64/float64/bool/[]byte/string/time.Time)
 func (l *literalImpl) converted() (interface{}, error) {
 	switch t := l.raw.(type) {
@@ -59,6 +74,8 @@ func (l *literalImpl) converted() (interface{}, error) {
 		return t, nil
 	case sqldriver.Valuer:
 		return t, nil
+	case nil:
+		return nil, nil
 	default:
 		return nil, newError("got %T type, but literal is not supporting this", t)
 	}
@@ -85,6 +102,8 @@ func (l *literalImpl) string() string {
 		return t.Format("2006-01-02 15:04:05")
 	case fmt.Stringer:
 		return t.String()
+	case nil:
+		return "NULL"
 	default:
 		return ""
 	}
