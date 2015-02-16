@@ -16,8 +16,8 @@ func TestLiteralConvert(t *testing.T) {
 	var cases = []testcase{
 		{toLiteral(int(10)), int64(10), false},
 		{toLiteral(int64(10)), int64(10), false},
-		{toLiteral(uint(10)), uint64(10), false},
-		{toLiteral(uint64(10)), uint64(10), false},
+		{toLiteral(uint(10)), int64(10), false},
+		{toLiteral(uint64(10)), int64(10), false},
 		{toLiteral(float32(10)), float64(10), false},
 		{toLiteral(float64(10)), float64(10), false},
 		{toLiteral(bool(true)), bool(true), false},
