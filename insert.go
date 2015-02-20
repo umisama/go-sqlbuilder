@@ -3,7 +3,7 @@ package sqlbuilder
 // InsertStatement represents a INSERT statement.
 type InsertStatement struct {
 	columns ColumnList
-	values  []serializable
+	values  []literal
 	into    Table
 }
 
@@ -23,7 +23,7 @@ func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
 
 // Values sets VALUES clause.  The values is data for insert.
 func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
-	sl := make([]serializable, len(values))
+	sl := make([]literal, len(values))
 	for i := range values {
 		sl[i] = toLiteral(values[i])
 	}
@@ -68,13 +68,17 @@ func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) 
 		if !b.columns[i].acceptType(b.values[i]) {
 			bldr.SetError(newError("%s column not accept %T",
 				b.columns[i].config().Type().String(),
-				b.values[i]))
+				b.values[i].(literal).Raw()))
 			return
 		}
 	}
 
 	bldr.Append(" VALUES ( ")
-	bldr.AppendItems(b.values, ", ")
+	values := make([]serializable, len(b.values))
+	for i := range values {
+		values[i] = b.values[i]
+	}
+	bldr.AppendItems(values, ", ")
 	bldr.Append(" )")
 
 	return

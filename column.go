@@ -193,7 +193,7 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 	if !ok || lit == nil {
 		return false
 	}
-	if reflect.ValueOf(lit).IsNil() {
+	if lit.Raw() == nil {
 		return !m.opt.NotNull
 	}
 
