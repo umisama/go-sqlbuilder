@@ -36,6 +36,16 @@ func TestInsert(t *testing.T) {
 		[]interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
 		false,
 	}, {
+		Insert(table1).
+			Set(table1.C("str"), "hoge").
+			Set(table1.C("bool"), true).
+			Set(table1.C("float"), 0.1).
+			Set(table1.C("date"), time.Unix(0, 0).UTC()).
+			Set(table1.C("bytes"), []byte{0x01}),
+		`INSERT INTO "TABLE_A" ( "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ? );`,
+		[]interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
+		false,
+	}, {
 		// all columns if Columns() was not setted.
 		Insert(table1).Values(1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
 		`INSERT INTO "TABLE_A" ( "id", "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ?, ? );`,
