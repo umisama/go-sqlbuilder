@@ -21,6 +21,18 @@ func TestCreate(t *testing.T) {
 			Size: 255,
 		}),
 	)
+	table2 := NewTable(
+		"TABLE_B",
+		StringColumn("id", &ColumnOption{
+			PrimaryKey:    true,
+			AutoIncrement: true,
+			SqlType:       "VARCHAR(255)",
+		}),
+		AnyColumn("test1", &ColumnOption{
+			Unique:  true,
+			SqlType: "INTEGER",
+		}),
+	)
 	table_zero_columns := &table{
 		name:    "ZERO_TABLE",
 		columns: make([]Column, 0),
@@ -35,6 +47,11 @@ func TestCreate(t *testing.T) {
 	var cases = []testcase{{
 		CreateTable(table1).IfNotExists(),
 		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT );`,
+		[]interface{}{},
+		false,
+	}, {
+		CreateTable(table2).IfNotExists(),
+		`CREATE TABLE IF NOT EXISTS "TABLE_B" ( "id" VARCHAR(255) PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE );`,
 		[]interface{}{},
 		false,
 	}, {

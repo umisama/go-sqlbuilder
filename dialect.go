@@ -28,6 +28,10 @@ func (m SqliteDialect) QuoteField(field string) string {
 }
 
 func (m SqliteDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
+	if cc.Option().SqlType != "" {
+		return cc.Option().SqlType, nil
+	}
+
 	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
@@ -91,6 +95,10 @@ func (m MysqlDialect) QuoteField(field string) string {
 }
 
 func (m MysqlDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
+	if cc.Option().SqlType != "" {
+		return cc.Option().SqlType, nil
+	}
+
 	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:
@@ -155,6 +163,10 @@ func (m PostgresDialect) QuoteField(field string) string {
 }
 
 func (m PostgresDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
+	if cc.Option().SqlType != "" {
+		return cc.Option().SqlType, nil
+	}
+
 	typ := ""
 	switch cc.Type() {
 	case columnTypeInt:

@@ -19,7 +19,8 @@ type ColumnConfig interface {
 type columnType int
 
 const (
-	columnTypeInt columnType = iota
+	columnTypeAny columnType = iota
+	columnTypeInt
 	columnTypeString
 	columnTypeDate
 	columnTypeFloat
@@ -41,6 +42,8 @@ func (t columnType) String() string {
 		return "bool"
 	case columnTypeBytes:
 		return "bytes"
+	case columnTypeAny:
+		return "any"
 	}
 	panic(newError("unknown columnType"))
 }
@@ -81,6 +84,8 @@ func (t columnType) CapableTypes() []reflect.Type {
 		return []reflect.Type{
 			reflect.TypeOf([]byte{}),
 		}
+	case columnTypeAny:
+		return []reflect.Type{} // but accept all types
 	}
 	return []reflect.Type{}
 }
@@ -92,6 +97,7 @@ type ColumnOption struct {
 	Unique        bool
 	AutoIncrement bool
 	Size          int
+	SqlType       string
 	//Default       interface{}
 }
 
@@ -196,6 +202,9 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 	if lit.Raw() == nil {
 		return !m.opt.NotNull
 	}
+	if m.Type() == columnTypeAny {
+		return true
+	}
 
 	valt := reflect.TypeOf(lit.Raw())
 	for _, t := range m.typ.CapableTypes() {
@@ -219,6 +228,15 @@ func (m *columnImpl) As(alias string) Column {
 	return &aliasColumn{
 		column: m,
 		alias:  alias,
+	}
+}
+
+// AnyColumn creates config for any types.
+func AnyColumn(name string, opt *ColumnOption) ColumnConfig {
+	return &columnConfigImpl{
+		name: name,
+		typ:  columnTypeAny,
+		opt:  opt,
 	}
 }
 
