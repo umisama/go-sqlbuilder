@@ -24,8 +24,8 @@ func TestSelect(t *testing.T) {
 		err   bool
 	}
 	var cases = []testcase{{
-		Select(table1.C("test1"), table1.C("test2")).
-			From(table1).
+		Select(table1).
+			Columns(table1.C("test1"), table1.C("test2")).
 			Where(
 			And(
 				table1.C("id").Eq(1),
@@ -44,21 +44,21 @@ func TestSelect(t *testing.T) {
 		[]interface{}{1, 2, 1, 10, 20},
 		false,
 	}, {
-		Select(table1.C("test1"), table1.C("test2")).
-			From(table1),
+		Select(table1).
+			Columns(table1.C("test1"), table1.C("test2")),
 		`SELECT "TABLE_A"."test1", "TABLE_A"."test2" FROM "TABLE_A";`,
 		[]interface{}{},
 		false,
 	}, {
-		Select(acol_id).
-			From(table1).
+		Select(table1).
+			Columns(acol_id).
 			Where(acol_id.Eq(1)),
 		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=?;`,
 		[]interface{}{1},
 		false,
 	}, {
-		Select(acol_id).
-			From(table1).
+		Select(table1).
+			Columns(acol_id).
 			Where(acol_id.Eq(1)).
 			OrderBy(false, table1.C("test1")).
 			OrderBy(true, table1.C("test2")),
@@ -66,20 +66,26 @@ func TestSelect(t *testing.T) {
 		[]interface{}{1},
 		false,
 	}, {
-		Select(Star).
-			From(table1),
+		Select(table1).
+			Columns(Star),
 		`SELECT * FROM "TABLE_A";`,
 		[]interface{}{},
 		false,
 	}, {
-		Select(table1.C("test1"), table1.C("test2")).
-			From(nil),
+		Select(table1),
+		`SELECT * FROM "TABLE_A";`,
+		[]interface{}{},
+		false,
+	}, {
+		Select(nil).
+			Columns(table1.C("test1"), table1.C("test2")),
 		``,
 		[]interface{}{},
 		true,
 	}, {
-		Select(table1.C("test1"), table1.C("test2")).
-			From(table1).Having(table1.C("id").Eq(1)),
+		Select(table1).
+			Columns(table1.C("test1"), table1.C("test2")).
+			Having(table1.C("id").Eq(1)),
 		``,
 		[]interface{}{},
 		true,
@@ -108,9 +114,9 @@ func TestSubquery(t *testing.T) {
 		IntColumn("test2", nil),
 	)
 
-	subquery := Select(table1.C("id")).From(table1).ToSubquery("SQ1")
-	query, attrs, err := Select(subquery.C("id")).
-		From(subquery).
+	subquery := Select(table1).Columns(table1.C("id")).ToSubquery("SQ1")
+	query, attrs, err := Select(subquery).
+		Columns(subquery.C("id")).
 		Where(subquery.C("id").Eq(1)).ToSql()
 
 	a.Equal(`SELECT "SQ1"."id" FROM ( SELECT "TABLE_A"."id" FROM "TABLE_A" ) AS SQ1 WHERE "SQ1"."id"=?;`, query)
@@ -129,8 +135,8 @@ func BenchmarkSelect(b *testing.B) {
 	)
 
 	for i := 0; i < b.N; i++ {
-		Select(table1.C("test1"), table1.C("test2")).
-			From(table1).
+		Select(table1).
+			Columns(table1.C("test1"), table1.C("test2")).
 			Where(
 			And(
 				table1.C("id").Eq(1),

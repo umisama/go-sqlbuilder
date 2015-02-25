@@ -79,9 +79,8 @@ func TestInsertToEmailTable(t *testing.T) {
 func TestSelectSimple(t *testing.T) {
 	a := assert.New(t)
 
-	query, args, err := sb.Select(
-		tbl_person.C("id"), tbl_person.C("name"), tbl_person.C("birth")).
-		From(tbl_person).
+	query, args, err := sb.Select(tbl_person).
+		Columns(tbl_person.C("id"), tbl_person.C("name"), tbl_person.C("birth")).
 		OrderBy(false, tbl_person.C("id")).
 		ToSql()
 	a.NoError(err)
@@ -140,8 +139,8 @@ func TestSelectJoinedWithAlias(t *testing.T) {
 	col_name := tbl_person.C("name").As("name")
 	col_birth := tbl_person.C("birth").As("birth")
 	col_email := tbl_email.C("address").As("email")
-	query, args, err := sb.Select(col_id, col_name, col_birth, col_email).
-		From(tbl_person_email).
+	query, args, err := sb.Select(tbl_person_email).
+		Columns(col_id, col_name, col_birth, col_email).
 		OrderBy(false, col_id).
 		OrderBy(false, tbl_email.C("id")).
 		ToSql()
@@ -198,9 +197,8 @@ func TestSelectJoined(t *testing.T) {
 	}}
 
 	tbl_person_email := tbl_person.LeftOuterJoin(tbl_email, tbl_email.C("person_id").Eq(tbl_person.C("id")))
-	query, args, err := sb.Select(
-		tbl_person.C("id"), tbl_person.C("name"), tbl_person.C("birth"), tbl_email.C("address")).
-		From(tbl_person_email).
+	query, args, err := sb.Select(tbl_person_email).
+		Columns(tbl_person.C("id"), tbl_person.C("name"), tbl_person.C("birth"), tbl_email.C("address")).
 		OrderBy(false, tbl_person.C("id")).
 		OrderBy(false, tbl_email.C("id")).
 		ToSql()
@@ -237,9 +235,9 @@ func TestDelete(t *testing.T) {
 
 func TestSqlFunction1(t *testing.T) {
 	a := assert.New(t)
-	query, args, err := sb.Select(
-		sb.Func("count", tbl_phone.C("id")),
-	).From(tbl_phone).ToSql()
+	query, args, err := sb.Select(tbl_phone).
+		Columns(sb.Func("count", tbl_phone.C("id"))).
+		ToSql()
 	a.NoError(err)
 
 	rows, err := db.Query(query, args...)

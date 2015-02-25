@@ -13,19 +13,19 @@ type SelectStatement struct {
 	having   Condition
 }
 
-// Select returns new SELECT statement with set result columns.
-// Get all columns (use *) if columns's length is 0.
-func Select(columns ...Column) *SelectStatement {
+// Select returns new SELECT statement with from as FROM clause.
+func Select(from Table) *SelectStatement {
 	return &SelectStatement{
-		columns: selectColumnList(columns),
+		from: from,
 	}
 }
 
-// From sets FROM clause.
-// If not set this, get error on ToSql().
-func (b *SelectStatement) From(table Table) *SelectStatement {
-	b.from = table
+// Columns set columns for select.
+// Get all columns (use *) if it is not setted.
+func (b *SelectStatement) Columns(columns ...Column) *SelectStatement {
+	b.columns = selectColumnList(columns)
 	return b
+
 }
 
 // Where sets WHERE clause.  The cond is filter condition.
@@ -234,6 +234,11 @@ func (m *subquery) FullOuterJoin(Table, Condition) Table {
 type selectColumnList []Column
 
 func (l selectColumnList) serialize(bldr *builder) {
+	if len(l) == 0 {
+		bldr.AppendItem(Star)
+		return
+	}
+
 	first := true
 	for _, col := range l {
 		if first {
