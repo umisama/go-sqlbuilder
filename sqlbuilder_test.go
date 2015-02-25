@@ -84,3 +84,44 @@ func (m TestDialect) ColumnOptionToString(co *ColumnOption) (string, error) {
 
 	return opt, nil
 }
+
+func (m TestDialect) TableOptionToString(to *TableOption) (string, error) {
+	opt := ""
+	apnd := func(str, opt string) string {
+		if len(str) != 0 {
+			str += " "
+		}
+		str += opt
+		return str
+	}
+
+	if to.Unique != nil {
+		opt = apnd(opt, m.tableOptionUnique(to.Unique))
+	}
+	return opt, nil
+}
+
+func (m TestDialect) tableOptionUnique(op [][]string) string {
+	opt := ""
+	first_op := true
+	for _, unique := range op {
+		if first_op {
+			first_op = false
+		} else {
+			opt += " "
+		}
+
+		opt += "UNIQUE("
+		first := true
+		for _, col := range unique {
+			if first {
+				first = false
+			} else {
+				opt += ", "
+			}
+			opt += m.QuoteField(col)
+		}
+		opt += ")"
+	}
+	return opt
+}

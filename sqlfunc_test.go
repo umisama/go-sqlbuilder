@@ -15,6 +15,7 @@ func TestSqlFunc(t *testing.T) {
 	b := newBuilder()
 	table1 := NewTable(
 		"TABLE_A",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),

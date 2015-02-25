@@ -18,7 +18,7 @@ var db *sql.DB
 
 // Table for testing
 var tbl_person = sb.NewTable(
-	"PERSON",
+	"PERSON", nil,
 	sb.IntColumn("id", &sb.ColumnOption{
 		PrimaryKey: true,
 	}),
@@ -30,6 +30,9 @@ var tbl_person = sb.NewTable(
 )
 var tbl_phone = sb.NewTable(
 	"PHONE",
+	&sb.TableOption{
+		Unique: [][]string{{"phone_id", "number"}},
+	},
 	sb.IntColumn("id", &sb.ColumnOption{
 		PrimaryKey:    true,
 		AutoIncrement: true,
@@ -41,6 +44,9 @@ var tbl_phone = sb.NewTable(
 )
 var tbl_email = sb.NewTable(
 	"EMAIL",
+	&sb.TableOption{
+		Unique: [][]string{{"person_id", "address"}},
+	},
 	sb.IntColumn("id", &sb.ColumnOption{
 		PrimaryKey:    true,
 		AutoIncrement: true,

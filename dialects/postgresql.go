@@ -78,3 +78,37 @@ func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 
 	return opt, nil
 }
+
+func (m Postgresql) TableOptionToString(to *sb.TableOption) (string, error) {
+	opt := ""
+	if to.Unique != nil {
+		opt = str_append(opt, m.tableOptionUnique(to.Unique))
+	}
+
+	return "", nil
+}
+
+func (m Postgresql) tableOptionUnique(op [][]string) string {
+	opt := ""
+	first_op := true
+	for _, unique := range op {
+		if first_op {
+			first_op = false
+		} else {
+			opt += " "
+		}
+
+		opt += "UNIQUE("
+		first := true
+		for _, col := range unique {
+			if first {
+				first = false
+			} else {
+				opt += ", "
+			}
+			opt += m.QuoteField(col)
+		}
+		opt += ")"
+	}
+	return opt
+}

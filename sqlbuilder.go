@@ -29,6 +29,7 @@ type Dialect interface {
 	QuoteField(field string) string
 	ColumnTypeToString(ColumnConfig) (string, error)
 	ColumnOptionToString(*ColumnOption) (string, error)
+	TableOptionToString(*TableOption) (string, error)
 }
 
 // SetDialect sets dialect for SQL server.

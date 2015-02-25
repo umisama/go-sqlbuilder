@@ -9,6 +9,7 @@ func TestSelect(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),
@@ -107,6 +108,7 @@ func TestSubquery(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),
@@ -127,6 +129,7 @@ func TestSubquery(t *testing.T) {
 func BenchmarkSelect(b *testing.B) {
 	table1 := NewTable(
 		"TABLE_A",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),

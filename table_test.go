@@ -12,12 +12,23 @@ func TestTable(t *testing.T) {
 	a.Panics(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
+			&TableOption{},
 		)
 	})
 
 	a.NotPanics(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
+			&TableOption{},
+			IntColumn("id", nil),
+		)
+	})
+	a.NotNil(table1)
+
+	a.NotPanics(func() {
+		table1 = NewTable(
+			"TABLE_NAME",
+			nil,
 			IntColumn("id", nil),
 		)
 	})
@@ -29,6 +40,7 @@ func TestJoinTable(t *testing.T) {
 
 	l_table := NewTable(
 		"LEFT_TABLE",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),
@@ -36,6 +48,7 @@ func TestJoinTable(t *testing.T) {
 	)
 	r_table := NewTable(
 		"RIGHT_TABLE",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),
@@ -43,6 +56,7 @@ func TestJoinTable(t *testing.T) {
 	)
 	rr_table := NewTable(
 		"RIGHTRIGHT_TABLE",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),

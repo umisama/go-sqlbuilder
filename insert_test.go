@@ -10,6 +10,7 @@ func TestInsert(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey: true,
 		}),

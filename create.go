@@ -42,7 +42,10 @@ func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err er
 	}()
 
 	if b.table == nil {
-		bldr.SetError(newError("table is nil"))
+		bldr.SetError(newError("table is nil."))
+		return
+	} else if _, ok := b.table.(*table); !ok {
+		bldr.SetError(newError("This table can not create."))
 		return
 	}
 
@@ -57,9 +60,19 @@ func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err er
 		bldr.AppendItem(createTableColumnList(b.table.Columns()))
 		bldr.Append(" )")
 	} else {
-		bldr.SetError(newError("CreateTableStatement needs one or more columns"))
+		bldr.SetError(newError("CreateTableStatement needs one or more columns."))
 		return
 	}
+
+	// table option
+	if tabopt, err := dialect().TableOptionToString(b.table.Option()); err == nil {
+		if len(tabopt) != 0 {
+			bldr.Append(" " + tabopt)
+		}
+	} else {
+		bldr.SetError(err)
+	}
+
 	return
 }
 

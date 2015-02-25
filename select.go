@@ -207,6 +207,10 @@ func (m *subquery) Columns() []Column {
 	return nil
 }
 
+func (m *subquery) Option() *TableOption {
+	return nil
+}
+
 func (m *subquery) InnerJoin(Table, Condition) Table {
 	m.err = newError("Subquery can not join")
 	return m

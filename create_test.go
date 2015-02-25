@@ -10,6 +10,7 @@ func TestCreate(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
+		&TableOption{},
 		IntColumn("id", &ColumnOption{
 			PrimaryKey:    true,
 			AutoIncrement: true,
@@ -23,6 +24,7 @@ func TestCreate(t *testing.T) {
 	)
 	table2 := NewTable(
 		"TABLE_B",
+		&TableOption{},
 		StringColumn("id", &ColumnOption{
 			PrimaryKey:    true,
 			AutoIncrement: true,
@@ -31,6 +33,22 @@ func TestCreate(t *testing.T) {
 		AnyColumn("test1", &ColumnOption{
 			Unique:  true,
 			SqlType: "INTEGER",
+		}),
+	)
+	table3 := NewTable(
+		"TABLE_C",
+		&TableOption{
+			Unique: [][]string{{"test1", "test2"}},
+		},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey:    true,
+			AutoIncrement: true,
+		}),
+		IntColumn("test1", &ColumnOption{
+			Unique: true,
+		}),
+		StringColumn("test2", &ColumnOption{
+			Size: 255,
 		}),
 	)
 	table_zero_columns := &table{
@@ -52,6 +70,11 @@ func TestCreate(t *testing.T) {
 	}, {
 		CreateTable(table2).IfNotExists(),
 		`CREATE TABLE IF NOT EXISTS "TABLE_B" ( "id" VARCHAR(255) PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE );`,
+		[]interface{}{},
+		false,
+	}, {
+		CreateTable(table3).IfNotExists(),
+		`CREATE TABLE IF NOT EXISTS "TABLE_C" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT ) UNIQUE("test1", "test2");`,
 		[]interface{}{},
 		false,
 	}, {

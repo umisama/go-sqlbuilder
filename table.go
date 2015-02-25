@@ -11,7 +11,14 @@ const (
 
 type table struct {
 	name    string
+	option  *TableOption
 	columns []Column
+}
+
+// TableOption reprecents constraint of a table.
+type TableOption struct {
+	Unique [][]string
+	//ForeignKey map[string]Column // will implement future
 }
 
 type joinTable struct {
@@ -29,7 +36,12 @@ type Table interface {
 	C(name string) Column
 
 	// Name returns table' name.
+	// returns empty if it is joined table or subquery.
 	Name() string
+
+	// Option returns table's option(table constraint).
+	// returns nil if it is joined table or subquery.
+	Option() *TableOption
 
 	// Columns returns all columns.
 	Columns() []Column
@@ -53,13 +65,17 @@ type Table interface {
 
 // NewTable returns a new table named by the name.  Specify table columns by the column_config.
 // Panic if column is empty.
-func NewTable(name string, column_configs ...ColumnConfig) Table {
+func NewTable(name string, option *TableOption, column_configs ...ColumnConfig) Table {
 	if len(column_configs) == 0 {
 		panic(newError("column is needed"))
 	}
+	if option == nil {
+		option = &TableOption{}
+	}
 
 	t := &table{
-		name: name,
+		name:   name,
+		option: option,
 	}
 
 	columns := make([]Column, 0, len(column_configs))
@@ -92,6 +108,10 @@ func (m *table) Name() string {
 
 func (m *table) Columns() []Column {
 	return m.columns
+}
+
+func (m *table) Option() *TableOption {
+	return m.option
 }
 
 func (m *table) InnerJoin(right Table, on Condition) Table {
@@ -155,6 +175,10 @@ func (m *joinTable) Name() string {
 
 func (m *joinTable) Columns() []Column {
 	return append(m.left.Columns(), m.right.Columns()...)
+}
+
+func (m *joinTable) Option() *TableOption {
+	return nil
 }
 
 func (m *joinTable) InnerJoin(right Table, on Condition) Table {
