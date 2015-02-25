@@ -58,7 +58,6 @@ func (b *UpdateStatement) OrderBy(desc bool, columns ...Column) *UpdateStatement
 func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 	defer func() {
-		bldr.Append(dialect.QuerySuffix())
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
 
@@ -125,7 +124,7 @@ func (m updateValue) serialize(bldr *builder) {
 		return
 	}
 
-	bldr.Append(dialect.QuoteField(m.col.column_name()))
+	bldr.Append(dialect().QuoteField(m.col.column_name()))
 	bldr.Append("=")
 	bldr.AppendItem(m.val)
 }

@@ -8,9 +8,9 @@ import (
 	"fmt"
 )
 
-var dialect Dialect
+var _dialect Dialect = nil
 
-// Star reprecents
+// Star reprecents * column.
 var Star Column = &columnImpl{nil, nil}
 
 // Statement reprecents a statement(SELECT/INSERT/UPDATE and other)
@@ -22,15 +22,26 @@ type serializable interface {
 	serialize(b *builder)
 }
 
+// Dialect encapsulates behaviors that differ across SQL database.
+type Dialect interface {
+	QuerySuffix() string
+	BindVar(i int) string
+	QuoteField(field string) string
+	ColumnTypeToString(ColumnConfig) (string, error)
+	ColumnOptionToString(*ColumnOption) (string, error)
+}
+
 // SetDialect sets dialect for SQL server.
 // Must set dialect at first.
 func SetDialect(opt Dialect) {
-	dialect = opt
+	_dialect = opt
 }
 
-func init() {
-	// initial setup
-	SetDialect(SqliteDialect{})
+func dialect() Dialect {
+	if _dialect == nil {
+		panic(newError("dialect is not setted.  Call SetDialect() first."))
+	}
+	return _dialect
 }
 
 type builder struct {
@@ -58,7 +69,7 @@ func (b *builder) Query() string {
 	if b.err != nil {
 		return ""
 	}
-	return b.query.String()
+	return b.query.String() + dialect().QuerySuffix()
 }
 
 func (b *builder) Args() []interface{} {
@@ -89,24 +100,12 @@ func (b *builder) AppendValue(val interface{}) {
 		return
 	}
 
-	b.query.WriteString(dialect.BindVar(len(b.args) + 1))
+	b.query.WriteString(dialect().BindVar(len(b.args) + 1))
 	b.args = append(b.args, val)
 	return
 }
 
-func (b *builder) AppendValuesWithoutPlaceholder(val ...interface{}) {
-	if b.err != nil {
-		return
-	}
-
-	b.args = append(b.args, val...)
-	return
-}
-
 func (b *builder) AppendItems(parts []serializable, sep string) {
-	if b.err != nil {
-		return
-	}
 	if parts == nil {
 		return
 	}
@@ -124,9 +123,6 @@ func (b *builder) AppendItems(parts []serializable, sep string) {
 }
 
 func (b *builder) AppendItem(part serializable) {
-	if b.err != nil {
-		return
-	}
 	if part == nil {
 		return
 	}

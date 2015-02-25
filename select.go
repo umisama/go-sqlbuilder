@@ -141,12 +141,8 @@ func (b *SelectStatement) serialize(bldr *builder) {
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *SelectStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
-	defer func() {
-		bldr.Append(dialect.QuerySuffix())
-		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
-	}()
 	bldr.AppendItem(b)
-	return
+	return bldr.Query(), bldr.Args(), bldr.Err()
 }
 
 func (m *SelectStatement) ToSubquery(alias string) Table {

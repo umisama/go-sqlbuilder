@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	sb "github.com/umisama/go-sqlbuilder"
+	"github.com/umisama/go-sqlbuilder/dialects"
 	_ "github.com/ziutek/mymysql/godrv"
 )
 
@@ -116,9 +117,9 @@ func TestMain(m *testing.M) {
 	}
 
 	var cases = []testcase{
-		{"sqlite", sb.SqliteDialect{}, "sqlite3", ":memory:"},
-		{"mymysql", sb.MysqlDialect{}, "mymysql", "go_sqlbuilder_test/root/"},
-		{"postgres", sb.PostgresDialect{}, "postgres", "user=postgres dbname=go_sqlbuilder_test sslmode=disable"},
+		{"sqlite", dialects.Sqlite{}, "sqlite3", ":memory:"},
+		{"mymysql", dialects.MySql{}, "mymysql", "go_sqlbuilder_test/root/"},
+		{"postgres", dialects.Postgresql{}, "postgres", "user=postgres dbname=go_sqlbuilder_test sslmode=disable"},
 	}
 
 	for _, c := range cases {

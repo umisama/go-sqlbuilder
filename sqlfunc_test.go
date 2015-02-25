@@ -23,7 +23,7 @@ func TestSqlFunc(t *testing.T) {
 	)
 
 	Func("funcname", table1.C("id")).serialize(b)
-	a.Equal(`funcname("TABLE_A"."id")`, b.Query())
+	a.Equal(`funcname("TABLE_A"."id")`, b.query.String())
 	a.Equal([]interface{}{}, b.Args())
 	a.NoError(b.Err())
 }

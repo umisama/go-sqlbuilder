@@ -2,7 +2,6 @@ package sqlbuilder
 
 import (
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 )
 
@@ -102,9 +101,11 @@ func TestBinaryCondition(t *testing.T) {
 	for _, c := range cases {
 		bldr := newBuilder()
 		c.cond.serialize(bldr)
-		a.Equal(c.query, bldr.Query())
-		a.Equal(c.attrs, bldr.Args())
-		a.Equal(c.err == nil, bldr.Err() == nil)
+		if bldr.err == nil {
+			a.Equal(c.query, bldr.query.String())
+			a.Equal(c.attrs, bldr.args)
+		}
+		a.Equal(c.err == nil, bldr.err == nil)
 	}
 }
 
@@ -189,14 +190,17 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 	for _, c := range cases {
 		bldr := newBuilder()
 		c.cond.serialize(bldr)
-		a.Equal(c.query, bldr.Query())
-		a.Equal(c.attrs, bldr.Args())
-		a.Equal(c.err == nil, bldr.Err() == nil)
+		if bldr.err == nil {
+			a.Equal(c.query, bldr.query.String())
+			a.Equal(c.attrs, bldr.args)
+		}
+		a.Equal(c.err == nil, bldr.err == nil)
 	}
 
 }
 
 func TestAndCondition(t *testing.T) {
+	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", &ColumnOption{
@@ -213,18 +217,13 @@ func TestAndCondition(t *testing.T) {
 
 	bldr := newBuilder()
 	and.serialize(bldr)
-	if bldr.Query() != `"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?` {
-		t.Error("got", bldr.Query())
-	}
-	if !reflect.DeepEqual(bldr.Args(), []interface{}{int64(1), int64(2)}) {
-		t.Error("got", bldr.Args())
-	}
-	if bldr.Err() != nil {
-		t.Error("got", bldr.Err())
-	}
+	a.Equal(`"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?`, bldr.query.String())
+	a.Equal([]interface{}{int64(1), int64(2)}, bldr.args)
+	a.NoError(bldr.err)
 }
 
 func TestOrCondition(t *testing.T) {
+	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		IntColumn("id", &ColumnOption{
@@ -240,13 +239,7 @@ func TestOrCondition(t *testing.T) {
 
 	b := newBuilder()
 	or.serialize(b)
-	if b.Query() != `"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?` {
-		t.Error("got", b.Query())
-	}
-	if !reflect.DeepEqual(b.Args(), []interface{}{int64(1)}) {
-		t.Error("got", b.Args())
-	}
-	if b.Err() != nil {
-		t.Error("got", b.Err())
-	}
+	a.Equal(`"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?`, b.query.String())
+	a.Equal([]interface{}{int64(1)}, b.args)
+	a.NoError(b.err)
 }

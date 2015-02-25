@@ -12,45 +12,47 @@ type ColumnConfig interface {
 
 	toColumn(Table) Column
 	Name() string
-	Type() columnType
+	Type() ColumnType
 	Option() *ColumnOption
 }
 
-type columnType int
+// ColumnType reprecents a type of column.
+// Dialects handle this for know column options.
+type ColumnType int
 
 const (
-	columnTypeAny columnType = iota
-	columnTypeInt
-	columnTypeString
-	columnTypeDate
-	columnTypeFloat
-	columnTypeBool
-	columnTypeBytes
+	ColumnTypeAny ColumnType = iota
+	ColumnTypeInt
+	ColumnTypeString
+	ColumnTypeDate
+	ColumnTypeFloat
+	ColumnTypeBool
+	ColumnTypeBytes
 )
 
-func (t columnType) String() string {
+func (t ColumnType) String() string {
 	switch t {
-	case columnTypeInt:
+	case ColumnTypeInt:
 		return "int"
-	case columnTypeString:
+	case ColumnTypeString:
 		return "string"
-	case columnTypeDate:
+	case ColumnTypeDate:
 		return "date"
-	case columnTypeFloat:
+	case ColumnTypeFloat:
 		return "float"
-	case columnTypeBool:
+	case ColumnTypeBool:
 		return "bool"
-	case columnTypeBytes:
+	case ColumnTypeBytes:
 		return "bytes"
-	case columnTypeAny:
+	case ColumnTypeAny:
 		return "any"
 	}
 	panic(newError("unknown columnType"))
 }
 
-func (t columnType) CapableTypes() []reflect.Type {
+func (t ColumnType) CapableTypes() []reflect.Type {
 	switch t {
-	case columnTypeInt:
+	case ColumnTypeInt:
 		return []reflect.Type{
 			reflect.TypeOf(int(0)),
 			reflect.TypeOf(int8(0)),
@@ -63,28 +65,28 @@ func (t columnType) CapableTypes() []reflect.Type {
 			reflect.TypeOf(uint32(0)),
 			reflect.TypeOf(uint64(0)),
 		}
-	case columnTypeString:
+	case ColumnTypeString:
 		return []reflect.Type{
 			reflect.TypeOf(""),
 		}
-	case columnTypeDate:
+	case ColumnTypeDate:
 		return []reflect.Type{
 			reflect.TypeOf(time.Time{}),
 		}
-	case columnTypeFloat:
+	case ColumnTypeFloat:
 		return []reflect.Type{
 			reflect.TypeOf(float32(0)),
 			reflect.TypeOf(float64(0)),
 		}
-	case columnTypeBool:
+	case ColumnTypeBool:
 		return []reflect.Type{
 			reflect.TypeOf(bool(true)),
 		}
-	case columnTypeBytes:
+	case ColumnTypeBytes:
 		return []reflect.Type{
 			reflect.TypeOf([]byte{}),
 		}
-	case columnTypeAny:
+	case ColumnTypeAny:
 		return []reflect.Type{} // but accept all types
 	}
 	return []reflect.Type{}
@@ -151,7 +153,7 @@ type aliasedColumn interface {
 
 type columnConfigImpl struct {
 	name string
-	typ  columnType
+	typ  ColumnType
 	opt  *ColumnOption
 }
 
@@ -159,7 +161,7 @@ func (c *columnConfigImpl) Name() string {
 	return c.name
 }
 
-func (c *columnConfigImpl) Type() columnType {
+func (c *columnConfigImpl) Type() ColumnType {
 	return c.typ
 }
 
@@ -177,7 +179,7 @@ func (m *columnConfigImpl) toColumn(table Table) Column {
 }
 
 func (m *columnConfigImpl) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.name))
+	bldr.Append(dialect().QuoteField(m.name))
 	return
 }
 
@@ -202,7 +204,7 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 	if lit.Raw() == nil {
 		return !m.opt.NotNull
 	}
-	if m.Type() == columnTypeAny {
+	if m.Type() == ColumnTypeAny {
 		return true
 	}
 
@@ -219,7 +221,7 @@ func (m *columnImpl) serialize(bldr *builder) {
 	if m == Star {
 		bldr.Append("*")
 	} else {
-		bldr.Append(dialect.QuoteField(m.table.Name()) + "." + dialect.QuoteField(m.name))
+		bldr.Append(dialect().QuoteField(m.table.Name()) + "." + dialect().QuoteField(m.name))
 	}
 	return
 }
@@ -235,7 +237,7 @@ func (m *columnImpl) As(alias string) Column {
 func AnyColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeAny,
+		typ:  ColumnTypeAny,
 		opt:  opt,
 	}
 }
@@ -244,7 +246,7 @@ func AnyColumn(name string, opt *ColumnOption) ColumnConfig {
 func IntColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeInt,
+		typ:  ColumnTypeInt,
 		opt:  opt,
 	}
 }
@@ -253,7 +255,7 @@ func IntColumn(name string, opt *ColumnOption) ColumnConfig {
 func StringColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeString,
+		typ:  ColumnTypeString,
 		opt:  opt,
 	}
 }
@@ -262,7 +264,7 @@ func StringColumn(name string, opt *ColumnOption) ColumnConfig {
 func DateColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeDate,
+		typ:  ColumnTypeDate,
 		opt:  opt,
 	}
 }
@@ -271,7 +273,7 @@ func DateColumn(name string, opt *ColumnOption) ColumnConfig {
 func FloatColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeFloat,
+		typ:  ColumnTypeFloat,
 		opt:  opt,
 	}
 }
@@ -280,7 +282,7 @@ func FloatColumn(name string, opt *ColumnOption) ColumnConfig {
 func BoolColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeBool,
+		typ:  ColumnTypeBool,
 		opt:  opt,
 	}
 }
@@ -289,7 +291,7 @@ func BoolColumn(name string, opt *ColumnOption) ColumnConfig {
 func BytesColumn(name string, opt *ColumnOption) ColumnConfig {
 	return &columnConfigImpl{
 		name: name,
-		typ:  columnTypeBytes,
+		typ:  ColumnTypeBytes,
 		opt:  opt,
 	}
 }
@@ -342,7 +344,7 @@ func (b ColumnList) serialize(bldr *builder) {
 		} else {
 			bldr.Append(", ")
 		}
-		bldr.Append(dialect.QuoteField(column.column_name()))
+		bldr.Append(dialect().QuoteField(column.column_name()))
 	}
 	return
 }
@@ -439,7 +441,7 @@ func (m *aliasColumn) As(alias string) Column {
 }
 
 func (m *aliasColumn) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.alias))
+	bldr.Append(dialect().QuoteField(m.alias))
 	return
 }
 

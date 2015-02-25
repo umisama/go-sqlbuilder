@@ -16,7 +16,6 @@ func DropTable(table Table) *DropTableStatement {
 func (b *DropTableStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 	defer func() {
-		bldr.Append(dialect.QuerySuffix())
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
 

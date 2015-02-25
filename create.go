@@ -38,7 +38,6 @@ func CreateIndex(table Table) *CreateIndexStatement {
 func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 	defer func() {
-		bldr.Append(dialect.QuerySuffix())
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
 
@@ -87,7 +86,6 @@ func (b *CreateIndexStatement) Name(name string) *CreateIndexStatement {
 func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 	defer func() {
-		bldr.Append(dialect.QuerySuffix())
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
 
@@ -97,7 +95,7 @@ func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err er
 	}
 
 	if len(b.name) != 0 {
-		bldr.Append(dialect.QuoteField(b.name))
+		bldr.Append(dialect().QuoteField(b.name))
 	} else {
 		bldr.SetError(newError("name was not setted."))
 		return
@@ -140,13 +138,13 @@ func (m createTableColumnList) serialize(bldr *builder) {
 		bldr.Append(" ")
 
 		// SQL data name
-		str, err := dialect.ColumnTypeToString(cc)
+		str, err := dialect().ColumnTypeToString(cc)
 		if err != nil {
 			bldr.SetError(err)
 		}
 		bldr.Append(str)
 
-		str, err = dialect.ColumnOptionToString(cc.Option())
+		str, err = dialect().ColumnOptionToString(cc.Option())
 		if err != nil {
 			bldr.SetError(err)
 		}

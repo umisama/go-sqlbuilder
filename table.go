@@ -72,7 +72,7 @@ func NewTable(name string, column_configs ...ColumnConfig) Table {
 }
 
 func (m *table) serialize(bldr *builder) {
-	bldr.Append(dialect.QuoteField(m.name))
+	bldr.Append(dialect().QuoteField(m.name))
 	return
 }
 

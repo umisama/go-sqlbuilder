@@ -45,7 +45,6 @@ func (b *InsertStatement) Set(column Column, value interface{}) *InsertStatement
 func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 	defer func() {
-		bldr.Append(dialect.QuerySuffix())
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
 

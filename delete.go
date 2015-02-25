@@ -23,7 +23,6 @@ func (b *DeleteStatement) Where(cond Condition) *DeleteStatement {
 func (b *DeleteStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
 	defer func() {
-		bldr.Append(dialect.QuerySuffix())
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
 
