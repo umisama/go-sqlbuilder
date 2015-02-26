@@ -74,15 +74,17 @@ func NewTable(name string, option *TableOption, column_configs ...ColumnConfig) 
 	}
 
 	t := &table{
-		name:   name,
-		option: option,
+		name:    name,
+		option:  option,
+		columns: make([]Column, 0, len(column_configs)),
 	}
 
-	columns := make([]Column, 0, len(column_configs))
 	for _, column_config := range column_configs {
-		columns = append(columns, column_config.toColumn(t))
+		err := t.AddColumnLast(column_config)
+		if err != nil {
+			panic(err)
+		}
 	}
-	t.columns = columns
 
 	return t
 }
@@ -106,12 +108,141 @@ func (m *table) Name() string {
 	return m.name
 }
 
+func (m *table) SetName(name string) {
+	m.name = name
+}
+
 func (m *table) Columns() []Column {
 	return m.columns
 }
 
 func (m *table) Option() *TableOption {
 	return m.option
+}
+
+func (m *table) AddColumnLast(cc ColumnConfig) error {
+	return m.addColumn(cc, len(m.columns))
+}
+
+func (m *table) AddColumnFirst(cc ColumnConfig) error {
+	return m.addColumn(cc, 0)
+}
+
+func (m *table) AddColumnAfter(cc ColumnConfig, after Column) error {
+	for i := range m.columns {
+		if m.columns[i] == after {
+			return m.addColumn(cc, i+1)
+		}
+	}
+	return newError("Column not found")
+}
+
+func (m *table) ChangeColumn(trg Column, cc ColumnConfig) error {
+	for i := range m.columns {
+		if m.columns[i] == trg {
+			err := m.dropColumn(i)
+			if err != nil {
+				return err
+			}
+			err = m.addColumn(cc, i)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return newError("Column not found")
+}
+
+func (m *table) ChangeColumnFirst(trg Column, cc ColumnConfig) error {
+	for i := range m.columns {
+		if m.columns[i] == trg {
+			err := m.dropColumn(i)
+			if err != nil {
+				return err
+			}
+			err = m.addColumn(cc, 0)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return newError("Column not found")
+}
+
+func (m *table) ChangeColumnAfter(trg Column, cc ColumnConfig, after Column) error {
+	backup := make([]Column, len(m.columns))
+	copy(backup, m.columns)
+	found := false
+	for i := range m.columns {
+		if m.columns[i] == trg {
+			err := m.dropColumn(i)
+			if err != nil {
+				m.columns = backup
+				return err
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		return newError("Column not found")
+	}
+	for i := range m.columns {
+		if m.columns[i] == after {
+			err := m.addColumn(cc, i+1)
+			if err != nil {
+				m.columns = backup
+				return err
+			}
+			return nil
+		}
+	}
+	m.columns = backup
+	return newError("Column not found")
+}
+
+func (m *table) addColumn(cc ColumnConfig, pos int) error {
+	if len(m.columns) < pos || pos < 0 {
+		return newError("Invalid position")
+	}
+
+	var (
+		u = make([]Column, pos)
+		p = make([]Column, len(m.columns)-pos)
+	)
+	copy(u, m.columns[:pos])
+	copy(p, m.columns[pos:])
+	c := cc.toColumn(m)
+	m.columns = append(u, c)
+	m.columns = append(m.columns, p...)
+	return nil
+}
+
+func (m *table) DropColumn(col Column) error {
+	for i := range m.columns {
+		if m.columns[i] == col {
+			return m.dropColumn(i)
+		}
+	}
+	return newError("Column not found")
+}
+
+func (m *table) dropColumn(pos int) error {
+	if len(m.columns) < pos || pos < 0 {
+		return newError("Invalid position")
+	}
+	var (
+		u = make([]Column, pos)
+		p = make([]Column, len(m.columns)-pos-1)
+	)
+	copy(u, m.columns[:pos])
+	if len(m.columns) > pos+1 {
+		copy(p, m.columns[pos+1:])
+	}
+	m.columns = append(u, p...)
+	return nil
 }
 
 func (m *table) InnerJoin(right Table, on Condition) Table {

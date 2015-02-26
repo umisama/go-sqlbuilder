@@ -97,6 +97,11 @@ func TestAlterTable(t *testing.T) {
 		``,
 		[]interface{}{},
 		true,
+	}, {
+		AlterTable(table1.InnerJoin(table1, table1.C("id").Eq(table1.C("id")))).AddColumnAfter(IntColumn("test0", nil), table1.C("invalid")),
+		``,
+		[]interface{}{},
+		true,
 	}}
 
 	for _, c := range cases {
@@ -108,5 +113,56 @@ func TestAlterTable(t *testing.T) {
 		} else {
 			a.NoError(err)
 		}
+	}
+}
+
+func TestAlterTableApplyToTable(t *testing.T) {
+	a := assert.New(t)
+	table1 := NewTable(
+		"TABLE_A",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
+	)
+
+	stmt := AlterTable(table1).
+		RenameTo("TABLE_AAA").
+		AddColumn(IntColumn("test3", nil)).
+		AddColumnFirst(IntColumn("test4", nil)).
+		AddColumnAfter(IntColumn("test5", nil), table1.C("id")).
+		ChangeColumn(table1.C("test1"), IntColumn("test1a", nil)).
+		ChangeColumnFirst(table1.C("test2"), IntColumn("test2a", nil)).
+		DropColumn(table1.C("id"))
+	err := stmt.ApplyToTable()
+	a.NoError(err)
+
+	expect := []string{"test2a", "test4", "test5", "test1a", "test3"}
+	a.Len(table1.Columns(), len(expect))
+	for i, col := range table1.Columns() {
+		a.Equal(expect[i], col.column_name())
+	}
+	a.Equal(table1.Name(), "TABLE_AAA")
+
+	table1 = NewTable(
+		"TABLE_A",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		IntColumn("test1", nil),
+		IntColumn("test2", nil),
+	)
+
+	stmt = AlterTable(table1).
+		ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("test2"))
+	err = stmt.ApplyToTable()
+	a.NoError(err)
+	expect = []string{"id", "test2", "test1a"}
+	a.Len(table1.Columns(), len(expect))
+	for i, col := range table1.Columns() {
+		a.Equal(expect[i], col.column_name())
 	}
 }

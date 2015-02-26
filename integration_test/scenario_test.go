@@ -22,6 +22,14 @@ func TestCreateTable(t *testing.T) {
 	}
 }
 
+func TestAlterTable(t *testing.T) {
+	a := assert.New(t)
+
+	query, args, err := sb.AlterTable(tbl_person).AddColumn(sb.IntColumn("test", nil)).ToSql()
+	_, err = db.Exec(query, args...)
+	a.NoError(err)
+}
+
 func TestCreateIndex(t *testing.T) {
 	a := assert.New(t)
 	for _, table := range []sb.Table{tbl_phone, tbl_email} {

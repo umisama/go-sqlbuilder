@@ -1,16 +1,27 @@
 package sqlbuilder
 
 type AlterTableStatement struct {
-	table          Table
+	table          *table
 	rename_to      string
 	add_columns    []*alterTableAddColumn
 	drop_columns   []Column
 	change_columns []*alterTableChangeColumn
+
+	err error
 }
 
-func AlterTable(table Table) *AlterTableStatement {
+func AlterTable(tbl Table) *AlterTableStatement {
+	t, ok := tbl.(*table)
+	if !ok {
+		return &AlterTableStatement{
+			table:          t,
+			add_columns:    make([]*alterTableAddColumn, 0),
+			change_columns: make([]*alterTableChangeColumn, 0),
+			err:            newError("AlterTable can use only natural table."),
+		}
+	}
 	return &AlterTableStatement{
-		table:          table,
+		table:          t,
 		add_columns:    make([]*alterTableAddColumn, 0),
 		change_columns: make([]*alterTableChangeColumn, 0),
 	}
@@ -23,6 +34,7 @@ func (b *AlterTableStatement) RenameTo(name string) *AlterTableStatement {
 
 func (b *AlterTableStatement) AddColumn(col ColumnConfig) *AlterTableStatement {
 	b.add_columns = append(b.add_columns, &alterTableAddColumn{
+		table:  b.table,
 		column: col,
 		first:  false,
 		after:  nil,
@@ -32,6 +44,7 @@ func (b *AlterTableStatement) AddColumn(col ColumnConfig) *AlterTableStatement {
 
 func (b *AlterTableStatement) AddColumnAfter(col ColumnConfig, after Column) *AlterTableStatement {
 	b.add_columns = append(b.add_columns, &alterTableAddColumn{
+		table:  b.table,
 		column: col,
 		first:  false,
 		after:  after,
@@ -41,6 +54,7 @@ func (b *AlterTableStatement) AddColumnAfter(col ColumnConfig, after Column) *Al
 
 func (b *AlterTableStatement) AddColumnFirst(col ColumnConfig) *AlterTableStatement {
 	b.add_columns = append(b.add_columns, &alterTableAddColumn{
+		table:  b.table,
 		column: col,
 		first:  true,
 		after:  nil,
@@ -55,6 +69,7 @@ func (b *AlterTableStatement) DropColumn(col Column) *AlterTableStatement {
 
 func (b *AlterTableStatement) ChangeColumn(old_column Column, new_column ColumnConfig) *AlterTableStatement {
 	b.change_columns = append(b.change_columns, &alterTableChangeColumn{
+		table:      b.table,
 		old_column: old_column,
 		new_column: new_column,
 		first:      false,
@@ -65,6 +80,7 @@ func (b *AlterTableStatement) ChangeColumn(old_column Column, new_column ColumnC
 
 func (b *AlterTableStatement) ChangeColumnAfter(old_column Column, new_column ColumnConfig, after Column) *AlterTableStatement {
 	b.change_columns = append(b.change_columns, &alterTableChangeColumn{
+		table:      b.table,
 		old_column: old_column,
 		new_column: new_column,
 		first:      false,
@@ -75,6 +91,7 @@ func (b *AlterTableStatement) ChangeColumnAfter(old_column Column, new_column Co
 
 func (b *AlterTableStatement) ChangeColumnFirst(old_column Column, new_column ColumnConfig) *AlterTableStatement {
 	b.change_columns = append(b.change_columns, &alterTableChangeColumn{
+		table:      b.table,
 		old_column: old_column,
 		new_column: new_column,
 		first:      true,
@@ -88,6 +105,10 @@ func (b *AlterTableStatement) ToSql() (query string, args []interface{}, err err
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
+	if b.err != nil {
+		bldr.SetError(b.err)
+		return
+	}
 
 	bldr.Append("ALTER TABLE ")
 	bldr.AppendItem(b.table)
@@ -136,7 +157,33 @@ func (b *AlterTableStatement) ToSql() (query string, args []interface{}, err err
 	return "", nil, nil
 }
 
+func (b *AlterTableStatement) ApplyToTable() error {
+	for _, add_column := range b.add_columns {
+		err := add_column.applyToTable()
+		if err != nil {
+			return err
+		}
+	}
+	for _, change_column := range b.change_columns {
+		err := change_column.applyToTable()
+		if err != nil {
+			return err
+		}
+	}
+	for _, drop_column := range b.drop_columns {
+		err := b.table.DropColumn(drop_column)
+		if err != nil {
+			return err
+		}
+	}
+	if len(b.rename_to) != 0 {
+		b.table.SetName(b.rename_to)
+	}
+	return nil
+}
+
 type alterTableAddColumn struct {
+	table  *table
 	column ColumnConfig
 	first  bool
 	after  Column
@@ -177,7 +224,18 @@ func (b *alterTableAddColumn) serialize(bldr *builder) {
 	}
 }
 
+func (b *alterTableAddColumn) applyToTable() error {
+	if b.first {
+		return b.table.AddColumnFirst(b.column)
+	}
+	if b.after != nil {
+		return b.table.AddColumnAfter(b.column, b.after)
+	}
+	return b.table.AddColumnLast(b.column)
+}
+
 type alterTableChangeColumn struct {
+	table      *table
 	old_column Column
 	new_column ColumnConfig
 	first      bool
@@ -222,4 +280,14 @@ func (b *alterTableChangeColumn) serialize(bldr *builder) {
 			bldr.AppendItem(b.after)
 		}
 	}
+}
+
+func (b *alterTableChangeColumn) applyToTable() error {
+	if b.first {
+		return b.table.ChangeColumnFirst(b.old_column, b.new_column)
+	}
+	if b.after != nil {
+		return b.table.ChangeColumnAfter(b.old_column, b.new_column, b.after)
+	}
+	return b.table.ChangeColumn(b.old_column, b.new_column)
 }
