@@ -235,63 +235,46 @@ func (m *columnImpl) As(alias string) Column {
 
 // AnyColumn creates config for any types.
 func AnyColumn(name string, opt *ColumnOption) ColumnConfig {
-	return &columnConfigImpl{
-		name: name,
-		typ:  ColumnTypeAny,
-		opt:  opt,
-	}
+	return newColumnConfigImpl(name, ColumnTypeAny, opt)
 }
 
 // IntColumn creates config for INTEGER type column.
 func IntColumn(name string, opt *ColumnOption) ColumnConfig {
-	return &columnConfigImpl{
-		name: name,
-		typ:  ColumnTypeInt,
-		opt:  opt,
-	}
+	return newColumnConfigImpl(name, ColumnTypeInt, opt)
 }
 
 // StringColumn creates config for TEXT or VARCHAR type column.
 func StringColumn(name string, opt *ColumnOption) ColumnConfig {
-	return &columnConfigImpl{
-		name: name,
-		typ:  ColumnTypeString,
-		opt:  opt,
-	}
+	return newColumnConfigImpl(name, ColumnTypeString, opt)
 }
 
 // DateColumn creates config for DATETIME type column.
 func DateColumn(name string, opt *ColumnOption) ColumnConfig {
-	return &columnConfigImpl{
-		name: name,
-		typ:  ColumnTypeDate,
-		opt:  opt,
-	}
+	return newColumnConfigImpl(name, ColumnTypeDate, opt)
 }
 
 // FloatColumn creates config for REAL or FLOAT type column.
 func FloatColumn(name string, opt *ColumnOption) ColumnConfig {
-	return &columnConfigImpl{
-		name: name,
-		typ:  ColumnTypeFloat,
-		opt:  opt,
-	}
+	return newColumnConfigImpl(name, ColumnTypeFloat, opt)
 }
 
 // BoolColumn creates config for BOOLEAN type column.
 func BoolColumn(name string, opt *ColumnOption) ColumnConfig {
-	return &columnConfigImpl{
-		name: name,
-		typ:  ColumnTypeBool,
-		opt:  opt,
-	}
+	return newColumnConfigImpl(name, ColumnTypeBool, opt)
 }
 
 // BytesColumn creates config for BLOB type column.
 func BytesColumn(name string, opt *ColumnOption) ColumnConfig {
+	return newColumnConfigImpl(name, ColumnTypeBytes, opt)
+}
+
+func newColumnConfigImpl(name string, typ ColumnType, opt *ColumnOption) *columnConfigImpl {
+	if opt == nil {
+		opt = &ColumnOption{}
+	}
 	return &columnConfigImpl{
 		name: name,
-		typ:  ColumnTypeBytes,
+		typ:  typ,
 		opt:  opt,
 	}
 }
