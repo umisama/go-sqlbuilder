@@ -25,9 +25,12 @@ func TestCreateTable(t *testing.T) {
 func TestAlterTable(t *testing.T) {
 	a := assert.New(t)
 
-	query, args, err := sb.AlterTable(tbl_person).AddColumn(sb.IntColumn("test", nil)).ToSql()
+	stmt := sb.AlterTable(tbl_person).AddColumn(sb.IntColumn("test", nil))
+	query, args, err := stmt.ToSql()
 	_, err = db.Exec(query, args...)
 	a.NoError(err)
+
+	stmt.ApplyToTable()
 }
 
 func TestCreateIndex(t *testing.T) {
