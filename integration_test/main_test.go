@@ -17,44 +17,8 @@ import (
 var db *sql.DB
 
 // Table for testing
-var tbl_person = sb.NewTable(
-	"PERSON", nil,
-	sb.IntColumn("id", &sb.ColumnOption{
-		PrimaryKey: true,
-	}),
-	sb.StringColumn("name", &sb.ColumnOption{
-		Unique: true,
-		Size:   255,
-	}),
-	sb.DateColumn("birth", nil),
-)
-var tbl_phone = sb.NewTable(
-	"PHONE",
-	&sb.TableOption{
-		Unique: [][]string{{"phone_id", "number"}},
-	},
-	sb.IntColumn("id", &sb.ColumnOption{
-		PrimaryKey:    true,
-		AutoIncrement: true,
-	}),
-	sb.IntColumn("person_id", nil),
-	sb.StringColumn("number", &sb.ColumnOption{
-		Size: 255,
-	}),
-)
-var tbl_email = sb.NewTable(
-	"EMAIL",
-	&sb.TableOption{
-		Unique: [][]string{{"person_id", "address"}},
-	},
-	sb.IntColumn("id", &sb.ColumnOption{
-		PrimaryKey:    true,
-		AutoIncrement: true,
-	}),
-	sb.IntColumn("person_id", nil),
-	sb.StringColumn("address", &sb.ColumnOption{
-		Size: 255,
-	}),
+var (
+	tbl_person, tbl_phone, tbl_email sb.Table
 )
 
 // Data for testing
@@ -130,6 +94,47 @@ func TestMain(m *testing.M) {
 
 	for _, c := range cases {
 		fmt.Println("START unit test for", c.name)
+
+		// tables
+		tbl_person = sb.NewTable(
+			"PERSON", nil,
+			sb.IntColumn("id", &sb.ColumnOption{
+				PrimaryKey: true,
+			}),
+			sb.StringColumn("name", &sb.ColumnOption{
+				Unique: true,
+				Size:   255,
+			}),
+			sb.DateColumn("birth", nil),
+		)
+		tbl_phone = sb.NewTable(
+			"PHONE",
+			&sb.TableOption{
+				Unique: [][]string{{"phone_id", "number"}},
+			},
+			sb.IntColumn("id", &sb.ColumnOption{
+				PrimaryKey:    true,
+				AutoIncrement: true,
+			}),
+			sb.IntColumn("person_id", nil),
+			sb.StringColumn("number", &sb.ColumnOption{
+				Size: 255,
+			}),
+		)
+		tbl_email = sb.NewTable(
+			"EMAIL",
+			&sb.TableOption{
+				Unique: [][]string{{"person_id", "address"}},
+			},
+			sb.IntColumn("id", &sb.ColumnOption{
+				PrimaryKey:    true,
+				AutoIncrement: true,
+			}),
+			sb.IntColumn("person_id", nil),
+			sb.StringColumn("address", &sb.ColumnOption{
+				Size: 255,
+			}),
+		)
 
 		var err error
 		db, err = sql.Open(c.driver, c.dsn)
