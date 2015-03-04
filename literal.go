@@ -20,6 +20,16 @@ type literalImpl struct {
 }
 
 func toLiteral(v interface{}) literal {
+	refv := reflect.ValueOf(v)
+	if v != nil &&
+		refv.Kind() == reflect.Ptr &&
+		!refv.Type().Implements(reflect.TypeOf((*sqldriver.Valuer)(nil)).Elem()) {
+		if refv.IsNil() {
+			v = nil
+		} else {
+			v = reflect.Indirect(refv).Interface()
+		}
+	}
 	return &literalImpl{
 		raw:         v,
 		placeholder: true,

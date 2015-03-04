@@ -13,6 +13,7 @@ func TestLiteralConvert(t *testing.T) {
 		out interface{}
 		err bool
 	}
+	str := "makise-kurisu"
 	var cases = []testcase{
 		{toLiteral(int(10)), int64(10), false},
 		{toLiteral(int64(10)), int64(10), false},
@@ -23,6 +24,8 @@ func TestLiteralConvert(t *testing.T) {
 		{toLiteral(bool(true)), bool(true), false},
 		{toLiteral([]byte{0x11}), []byte{0x11}, false},
 		{toLiteral(string("makise-kurisu")), string("makise-kurisu"), false},
+		{toLiteral(&str), str, false},
+		{toLiteral((*string)(nil)), nil, false},
 		{toLiteral(time.Unix(0, 0)), time.Unix(0, 0), false},
 		{toLiteral(nil), nil, false},
 		{toLiteral(complex(0, 0)), nil, true},
