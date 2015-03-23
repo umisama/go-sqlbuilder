@@ -1,6 +1,7 @@
 package sqlbuilder
 
 import (
+	sqldriver "database/sql/driver"
 	"reflect"
 	"time"
 )
@@ -205,6 +206,9 @@ func (m *columnImpl) acceptType(val interface{}) bool {
 		return !m.opt.NotNull
 	}
 	if m.Type() == ColumnTypeAny {
+		return true
+	}
+	if _, ok := lit.Raw().(sqldriver.Valuer); ok {
 		return true
 	}
 
