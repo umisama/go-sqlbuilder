@@ -201,7 +201,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 
 }
 
-func TestAndCondition(t *testing.T) {
+func TestConnectCondition(t *testing.T) {
 	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
@@ -212,38 +212,62 @@ func TestAndCondition(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
-	eq1 := table1.C("id").Eq(table1.C("test1"))
-	eq2 := table1.C("id").Eq(1)
-	eq3 := table1.C("id").Eq(2)
-
-	and := And(eq1, eq2, eq3)
-
-	bldr := newBuilder()
-	and.serialize(bldr)
-	a.Equal(`"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?`, bldr.query.String())
-	a.Equal([]interface{}{int64(1), int64(2)}, bldr.args)
-	a.NoError(bldr.err)
-}
-
-func TestOrCondition(t *testing.T) {
-	a := assert.New(t)
-	table1 := NewTable(
-		"TABLE_A",
-		&TableOption{},
-		IntColumn("id", &ColumnOption{
-			PrimaryKey: true,
-		}),
-		IntColumn("test1", nil),
-		IntColumn("test2", nil),
-	)
-	eq1 := table1.C("id").Eq(table1.C("test1"))
-	eq2 := table1.C("id").Eq(1)
-
-	or := Or(eq1, eq2)
-
-	b := newBuilder()
-	or.serialize(b)
-	a.Equal(`"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?`, b.query.String())
-	a.Equal([]interface{}{int64(1)}, b.args)
-	a.NoError(b.err)
+	type testcase struct {
+		cond  Condition
+		query string
+		attrs []interface{}
+		err   error
+	}
+	cases := []testcase{{
+		And(
+			table1.C("id").Eq(table1.C("test1")),
+			table1.C("id").Eq(1),
+			table1.C("id").Eq(2),
+		),
+		`"TABLE_A"."id"="TABLE_A"."test1" AND "TABLE_A"."id"=? AND "TABLE_A"."id"=?`,
+		[]interface{}{int64(1), int64(2)},
+		nil,
+	}, {
+		Or(
+			table1.C("id").Eq(table1.C("test1")),
+			table1.C("id").Eq(1),
+		),
+		`"TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=?`,
+		[]interface{}{int64(1)},
+		nil,
+	}, {
+		And(
+			Or(
+				table1.C("id").Eq(table1.C("test1")),
+				table1.C("id").Eq(1),
+			),
+			Or(
+				table1.C("id").Eq(table1.C("test1")),
+				table1.C("id").Eq(1),
+			),
+		),
+		`( "TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=? ) AND ( "TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=? )`,
+		[]interface{}{int64(1), int64(1)},
+		nil,
+	}, {
+		And(
+			Or(
+				table1.C("id").Eq(table1.C("test1")),
+				table1.C("id").Eq(1),
+			),
+			table1.C("id").Eq(table1.C("test1")),
+		),
+		`( "TABLE_A"."id"="TABLE_A"."test1" OR "TABLE_A"."id"=? ) AND "TABLE_A"."id"="TABLE_A"."test1"`,
+		[]interface{}{int64(1)},
+		nil,
+	}}
+	for _, c := range cases {
+		bldr := newBuilder()
+		c.cond.serialize(bldr)
+		if bldr.err == nil {
+			a.Equal(c.query, bldr.query.String())
+			a.Equal(c.attrs, bldr.args)
+		}
+		a.Equal(c.err == nil, bldr.err == nil)
+	}
 }

@@ -18,7 +18,14 @@ func (c *connectCondition) serialize(bldr *builder) {
 		} else {
 			bldr.Append(" " + c.connector + " ")
 		}
-		cond.serialize(bldr)
+		if _, ok := cond.(*connectCondition); ok {
+			// if condition is AND or OR
+			bldr.Append("( ")
+			bldr.AppendItem(cond)
+			bldr.Append(" )")
+		} else {
+			bldr.AppendItem(cond)
+		}
 	}
 	return
 }
