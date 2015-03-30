@@ -18,7 +18,7 @@ func (m Postgresql) BindVar(i int) string {
 	return "$" + strconv.Itoa(i)
 }
 
-func (m Postgresql) QuoteField(field interface{}) string {
+func (m Postgresql) quoteField(field interface{}) (string, bool) {
 	str := ""
 	bracket := true
 	switch t := field.(type) {
@@ -40,9 +40,14 @@ func (m Postgresql) QuoteField(field interface{}) string {
 		}
 		bracket = false
 	case nil:
-		return "NULL"
+		str = "NULL"
 		bracket = false
 	}
+	return str, bracket
+}
+
+func (m Postgresql) QuoteField(field interface{}) string {
+	str, bracket := m.quoteField(field)
 	if bracket {
 		str = "\"" + str + "\""
 	}
@@ -100,7 +105,11 @@ func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 			opt = str_append(opt, "DEFAULT NULL")
 		}
 	} else {
-		opt = str_append(opt, "DEFAULT "+m.QuoteField(co.Default))
+		str, bracket := m.quoteField(co.Default)
+		if bracket {
+			str = "'" + str + "'"
+		}
+		opt = str_append(opt, "DEFAULT "+str)
 	}
 
 	return opt, nil
