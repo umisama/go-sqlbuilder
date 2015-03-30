@@ -102,8 +102,9 @@ func TestMain(m *testing.M) {
 				PrimaryKey: true,
 			}),
 			sb.StringColumn("name", &sb.ColumnOption{
-				Unique: true,
-				Size:   255,
+				Unique:  true,
+				Size:    255,
+				Default: "default_name",
 			}),
 			sb.DateColumn("birth", nil),
 		)

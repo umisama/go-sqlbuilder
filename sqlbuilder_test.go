@@ -2,9 +2,11 @@ package sqlbuilder
 
 import (
 	errs "errors"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestMain(m *testing.M) {
@@ -28,8 +30,35 @@ func (m TestDialect) BindVar(i int) string {
 	return "?"
 }
 
-func (m TestDialect) QuoteField(field string) string {
-	return "\"" + field + "\""
+func (m TestDialect) QuoteField(field interface{}) string {
+	str := ""
+	bracket := true
+	switch t := field.(type) {
+	case string:
+		str = t
+	case []byte:
+		str = string(t)
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		str = fmt.Sprint(field)
+	case float32, float64:
+		str = fmt.Sprint(field)
+	case time.Time:
+		str = t.Format("2006-01-02 15:04:05")
+	case bool:
+		if t {
+			str = "TRUE"
+		} else {
+			str = "FALSE"
+		}
+		bracket = false
+	case nil:
+		return "NULL"
+		bracket = false
+	}
+	if bracket {
+		str = "\"" + str + "\""
+	}
+	return str
 }
 
 func (m TestDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
@@ -81,6 +110,8 @@ func (m TestDialect) ColumnOptionToString(co *ColumnOption) (string, error) {
 	if co.Unique {
 		opt = apnd(opt, "UNIQUE")
 	}
+
+	// TestDialect omitted handling DEFAULT keyword
 
 	return opt, nil
 }

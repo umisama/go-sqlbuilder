@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	sb "github.com/umisama/go-sqlbuilder"
+	"time"
 )
 
 type MySql struct{}
@@ -16,8 +17,35 @@ func (m MySql) BindVar(i int) string {
 	return "?"
 }
 
-func (m MySql) QuoteField(field string) string {
-	return "`" + field + "`"
+func (m MySql) QuoteField(field interface{}) string {
+	str := ""
+	bracket := true
+	switch t := field.(type) {
+	case string:
+		str = t
+	case []byte:
+		str = string(t)
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		str = fmt.Sprint(field)
+	case float32, float64:
+		str = fmt.Sprint(field)
+	case time.Time:
+		str = t.Format("2006-01-02 15:04:05")
+	case bool:
+		if t {
+			str = "TRUE"
+		} else {
+			str = "FALSE"
+		}
+		bracket = false
+	case nil:
+		return "NULL"
+		bracket = false
+	}
+	if bracket {
+		str = "`" + str + "`"
+	}
+	return str
 }
 
 func (m MySql) ColumnTypeToString(cc sb.ColumnConfig) (string, error) {

@@ -26,7 +26,7 @@ type serializable interface {
 type Dialect interface {
 	QuerySuffix() string
 	BindVar(i int) string
-	QuoteField(field string) string
+	QuoteField(field interface{}) string
 	ColumnTypeToString(ColumnConfig) (string, error)
 	ColumnOptionToString(*ColumnOption) (string, error)
 	TableOptionToString(*TableOption) (string, error)
