@@ -48,9 +48,8 @@ func (m MySql) ColumnTypeToString(cc sb.ColumnConfig) (string, error) {
 	}
 }
 
-func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{}, error) {
+func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 	opt := ""
-	args := make([]interface{}, 0)
 	if co.PrimaryKey {
 		opt = str_append(opt, "PRIMARY KEY")
 	}
@@ -63,26 +62,17 @@ func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{},
 	if co.Unique {
 		opt = str_append(opt, "UNIQUE")
 	}
-	if co.Default == nil {
-		if !co.PrimaryKey {
-			opt = str_append(opt, "DEFAULT NULL")
-		}
-	} else {
-		opt = str_append(opt, "DEFAULT ?")
-		args = append(args, co.Default)
-	}
 
-	return opt, args, nil
+	return opt, nil
 }
 
-func (m MySql) TableOptionToString(to *sb.TableOption) (string, []interface{}, error) {
+func (m MySql) TableOptionToString(to *sb.TableOption) (string, error) {
 	opt := ""
-	args := make([]interface{}, 0)
 	if to.Unique != nil {
 		opt = str_append(opt, m.tableOptionUnique(to.Unique))
 	}
 
-	return "", args, nil
+	return "", nil
 }
 
 func (m MySql) tableOptionUnique(op [][]string) string {

@@ -59,7 +59,7 @@ func (m TestDialect) ColumnTypeToString(cc ColumnConfig) (string, error) {
 	}
 }
 
-func (m TestDialect) ColumnOptionToString(co *ColumnOption) (string, []interface{}, error) {
+func (m TestDialect) ColumnOptionToString(co *ColumnOption) (string, error) {
 	apnd := func(str, opt string) string {
 		if len(str) != 0 {
 			str += " "
@@ -69,7 +69,6 @@ func (m TestDialect) ColumnOptionToString(co *ColumnOption) (string, []interface
 	}
 
 	opt := ""
-	args := make([]interface{}, 0)
 	if co.PrimaryKey {
 		opt = apnd(opt, "PRIMARY KEY")
 	}
@@ -82,19 +81,12 @@ func (m TestDialect) ColumnOptionToString(co *ColumnOption) (string, []interface
 	if co.Unique {
 		opt = apnd(opt, "UNIQUE")
 	}
-	if co.Default == nil {
-		opt = apnd(opt, "DEFAULT NULL")
-	} else {
-		opt = apnd(opt, "DEFAULT ?")
-		args = append(args, co.Default)
-	}
 
-	return opt, args, nil
+	return opt, nil
 }
 
-func (m TestDialect) TableOptionToString(to *TableOption) (string, []interface{}, error) {
+func (m TestDialect) TableOptionToString(to *TableOption) (string, error) {
 	opt := ""
-	args := make([]interface{}, 0)
 	apnd := func(str, opt string) string {
 		if len(str) != 0 {
 			str += " "
@@ -106,7 +98,7 @@ func (m TestDialect) TableOptionToString(to *TableOption) (string, []interface{}
 	if to.Unique != nil {
 		opt = apnd(opt, m.tableOptionUnique(to.Unique))
 	}
-	return opt, args, nil
+	return opt, nil
 }
 
 func (m TestDialect) tableOptionUnique(op [][]string) string {

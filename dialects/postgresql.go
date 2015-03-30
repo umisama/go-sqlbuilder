@@ -53,7 +53,7 @@ func (m Postgresql) ColumnTypeToString(cc sb.ColumnConfig) (string, error) {
 	}
 }
 
-func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{}, error) {
+func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 	apnd := func(str, opt string) string {
 		if len(str) != 0 {
 			str += " "
@@ -63,7 +63,6 @@ func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, []interfa
 	}
 
 	opt := ""
-	args := make([]interface{}, 0)
 	if co.PrimaryKey {
 		opt = apnd(opt, "PRIMARY KEY")
 	}
@@ -76,26 +75,17 @@ func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, []interfa
 	if co.Unique {
 		opt = apnd(opt, "UNIQUE")
 	}
-	if co.Default == nil {
-		if !co.PrimaryKey {
-			opt = str_append(opt, "DEFAULT NULL")
-		}
-	} else {
-		opt = apnd(opt, "DEFAULT ?")
-		args = append(args, opt)
-	}
 
-	return opt, args, nil
+	return opt, nil
 }
 
-func (m Postgresql) TableOptionToString(to *sb.TableOption) (string, []interface{}, error) {
+func (m Postgresql) TableOptionToString(to *sb.TableOption) (string, error) {
 	opt := ""
-	args := make([]interface{}, 0)
 	if to.Unique != nil {
 		opt = str_append(opt, m.tableOptionUnique(to.Unique))
 	}
 
-	return "", args, nil
+	return "", nil
 }
 
 func (m Postgresql) tableOptionUnique(op [][]string) string {

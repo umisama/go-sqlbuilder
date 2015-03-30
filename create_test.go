@@ -64,17 +64,17 @@ func TestCreate(t *testing.T) {
 	}
 	var cases = []testcase{{
 		CreateTable(table1).IfNotExists(),
-		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT NULL, "test1" INTEGER UNIQUE DEFAULT NULL, "test2" TEXT DEFAULT NULL );`,
+		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT );`,
 		[]interface{}{},
 		false,
 	}, {
 		CreateTable(table2).IfNotExists(),
-		`CREATE TABLE IF NOT EXISTS "TABLE_B" ( "id" VARCHAR(255) PRIMARY KEY AUTOINCREMENT DEFAULT NULL, "test1" INTEGER UNIQUE DEFAULT NULL );`,
+		`CREATE TABLE IF NOT EXISTS "TABLE_B" ( "id" VARCHAR(255) PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE );`,
 		[]interface{}{},
 		false,
 	}, {
 		CreateTable(table3).IfNotExists(),
-		`CREATE TABLE IF NOT EXISTS "TABLE_C" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT NULL, "test1" INTEGER UNIQUE DEFAULT NULL, "test2" TEXT DEFAULT NULL ) UNIQUE("test1", "test2");`,
+		`CREATE TABLE IF NOT EXISTS "TABLE_C" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT ) UNIQUE("test1", "test2");`,
 		[]interface{}{},
 		false,
 	}, {

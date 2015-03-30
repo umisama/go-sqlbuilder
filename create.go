@@ -65,10 +65,9 @@ func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err er
 	}
 
 	// table option
-	if tabopt, args, err := dialect().TableOptionToString(b.table.Option()); err == nil {
+	if tabopt, err := dialect().TableOptionToString(b.table.Option()); err == nil {
 		if len(tabopt) != 0 {
 			bldr.Append(" " + tabopt)
-			bldr.AppendValuesRaw(args...)
 		}
 	} else {
 		bldr.SetError(err)
@@ -158,13 +157,12 @@ func (m createTableColumnList) serialize(bldr *builder) {
 		}
 		bldr.Append(str)
 
-		str, args, err := dialect().ColumnOptionToString(cc.Option())
+		str, err = dialect().ColumnOptionToString(cc.Option())
 		if err != nil {
 			bldr.SetError(err)
 		}
 		if len(str) != 0 {
 			bldr.Append(" " + str)
-			bldr.AppendValuesRaw(args...)
 		}
 	}
 }

@@ -28,8 +28,8 @@ type Dialect interface {
 	BindVar(i int) string
 	QuoteField(field string) string
 	ColumnTypeToString(ColumnConfig) (string, error)
-	ColumnOptionToString(*ColumnOption) (string, []interface{}, error)
-	TableOptionToString(*TableOption) (string, []interface{}, error)
+	ColumnOptionToString(*ColumnOption) (string, error)
+	TableOptionToString(*TableOption) (string, error)
 }
 
 // SetDialect sets dialect for SQL server.
@@ -103,15 +103,6 @@ func (b *builder) AppendValue(val interface{}) {
 
 	b.query.WriteString(dialect().BindVar(len(b.args) + 1))
 	b.args = append(b.args, val)
-	return
-}
-
-func (b *builder) AppendValuesRaw(val ...interface{}) {
-	if b.err != nil {
-		return
-	}
-
-	b.args = append(b.args, val...)
 	return
 }
 

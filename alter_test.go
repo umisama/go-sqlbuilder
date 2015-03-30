@@ -30,7 +30,7 @@ func TestAlterTable(t *testing.T) {
 			AddColumn(IntColumn("test4", nil)).
 			ChangeColumn(table1.C("test1"), IntColumn("test1a", nil)).
 			DropColumn(table1.C("test1")),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER DEFAULT NULL, ADD COLUMN "test4" INTEGER DEFAULT NULL, CHANGE COLUMN "test1" "test1a" INTEGER DEFAULT NULL, DROP COLUMN "test1", RENAME TO "TABLE_AAA";`,
+		`ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER, ADD COLUMN "test4" INTEGER, CHANGE COLUMN "test1" "test1a" INTEGER, DROP COLUMN "test1", RENAME TO "TABLE_AAA";`,
 		[]interface{}{},
 		false,
 	}, {
@@ -42,34 +42,34 @@ func TestAlterTable(t *testing.T) {
 		AlterTable(table1).AddColumn(IntColumn("test3", &ColumnOption{
 			Unique: true,
 		})),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER UNIQUE DEFAULT NULL;`,
+		`ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER UNIQUE;`,
 		[]interface{}{},
 		false,
 	}, {
 		AlterTable(table1).AddColumnAfter(IntColumn("test0", nil), table1.C("id")),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER DEFAULT NULL AFTER "id";`,
+		`ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER AFTER "id";`,
 		[]interface{}{},
 		false,
 	}, {
 		AlterTable(table1).AddColumnFirst(IntColumn("test0", nil)),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER DEFAULT NULL FIRST;`,
+		`ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER FIRST;`,
 		[]interface{}{},
 		false,
 	}, {
 		AlterTable(table1).ChangeColumn(table1.C("test1"), IntColumn("test1a", &ColumnOption{
 			Unique: true,
 		})),
-		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER UNIQUE DEFAULT NULL;`,
+		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER UNIQUE;`,
 		[]interface{}{},
 		false,
 	}, {
 		AlterTable(table1).ChangeColumnFirst(table1.C("test1"), IntColumn("test1a", nil)),
-		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER DEFAULT NULL FIRST;`,
+		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER FIRST;`,
 		[]interface{}{},
 		false,
 	}, {
 		AlterTable(table1).ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("test2")),
-		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER DEFAULT NULL AFTER "test2";`,
+		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER AFTER "test2";`,
 		[]interface{}{},
 		false,
 	}, {
