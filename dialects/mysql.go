@@ -48,7 +48,7 @@ func (m MySql) ColumnTypeToString(cc sb.ColumnConfig) (string, error) {
 	}
 }
 
-func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
+func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{}, error) {
 	opt := ""
 	args := make([]interface{}, 0)
 	if co.PrimaryKey {
@@ -70,7 +70,7 @@ func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 		args = append(args, co.Default)
 	}
 
-	return opt, nil
+	return opt, args, nil
 }
 
 func (m MySql) TableOptionToString(to *sb.TableOption) (string, []interface{}, error) {
