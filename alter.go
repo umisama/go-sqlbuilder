@@ -204,12 +204,13 @@ func (b *alterTableAddColumn) serialize(bldr *builder) {
 		bldr.Append(typ)
 	}
 
-	opt, err := dialect().ColumnOptionToString(b.column.Option())
+	opt, args, err := dialect().ColumnOptionToString(b.column.Option())
 	if err != nil {
 		bldr.SetError(err)
 	} else if len(opt) != 0 {
 		bldr.Append(" ")
 		bldr.Append(opt)
+		bldr.AppendValuesRaw(args...)
 	}
 
 	if b.first {
@@ -262,12 +263,13 @@ func (b *alterTableChangeColumn) serialize(bldr *builder) {
 		bldr.Append(typ)
 	}
 
-	opt, err := dialect().ColumnOptionToString(b.new_column.Option())
+	opt, args, err := dialect().ColumnOptionToString(b.new_column.Option())
 	if err != nil {
 		bldr.SetError(err)
 	} else if len(opt) != 0 {
 		bldr.Append(" ")
 		bldr.Append(opt)
+		bldr.AppendValuesRaw(args...)
 	}
 
 	if b.first {

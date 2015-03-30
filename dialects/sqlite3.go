@@ -46,7 +46,7 @@ func (m Sqlite) ColumnTypeToString(cc sb.ColumnConfig) (string, error) {
 	}
 }
 
-func (m Sqlite) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
+func (m Sqlite) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{}, error) {
 	apnd := func(str, opt string) string {
 		if len(str) != 0 {
 			str += " "
@@ -56,6 +56,7 @@ func (m Sqlite) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 	}
 
 	opt := ""
+	args := make([]interface{}, 0)
 	if co.PrimaryKey {
 		opt = apnd(opt, "PRIMARY KEY")
 	}
@@ -68,17 +69,23 @@ func (m Sqlite) ColumnOptionToString(co *sb.ColumnOption) (string, error) {
 	if co.Unique {
 		opt = apnd(opt, "UNIQUE")
 	}
-
-	return opt, nil
+	if co.Default == nil {
+		opt = apnd(opt, "DEFAULT NULL")
+	} else {
+		opt = apnd(opt, "DEFAULT ?")
+		args = append(args, co.Default)
+	}
+	return opt, args, nil
 }
 
-func (m Sqlite) TableOptionToString(to *sb.TableOption) (string, error) {
+func (m Sqlite) TableOptionToString(to *sb.TableOption) (string, []interface{}, error) {
 	opt := ""
+	args := make([]interface{}, 0)
 	if to.Unique != nil {
 		opt = str_append(opt, m.tableOptionUnique(to.Unique))
 	}
 
-	return "", nil
+	return "", args, nil
 }
 
 func (m Sqlite) tableOptionUnique(op [][]string) string {

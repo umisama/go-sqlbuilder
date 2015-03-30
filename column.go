@@ -101,7 +101,7 @@ type ColumnOption struct {
 	AutoIncrement bool
 	Size          int
 	SqlType       string
-	//Default       interface{}
+	Default       interface{}
 }
 
 // ColumnList represents list of Column.
