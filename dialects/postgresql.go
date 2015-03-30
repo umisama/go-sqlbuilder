@@ -77,7 +77,9 @@ func (m Postgresql) ColumnOptionToString(co *sb.ColumnOption) (string, []interfa
 		opt = apnd(opt, "UNIQUE")
 	}
 	if co.Default == nil {
-		opt = apnd(opt, "DEFAULT NULL")
+		if !co.PrimaryKey {
+			opt = str_append(opt, "DEFAULT NULL")
+		}
 	} else {
 		opt = apnd(opt, "DEFAULT ?")
 		args = append(args, opt)

@@ -64,7 +64,9 @@ func (m MySql) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{},
 		opt = str_append(opt, "UNIQUE")
 	}
 	if co.Default == nil {
-		opt = str_append(opt, "DEFAULT NULL")
+		if !co.PrimaryKey {
+			opt = str_append(opt, "DEFAULT NULL")
+		}
 	} else {
 		opt = str_append(opt, "DEFAULT ?")
 		args = append(args, co.Default)

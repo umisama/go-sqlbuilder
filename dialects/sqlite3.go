@@ -70,7 +70,9 @@ func (m Sqlite) ColumnOptionToString(co *sb.ColumnOption) (string, []interface{}
 		opt = apnd(opt, "UNIQUE")
 	}
 	if co.Default == nil {
-		opt = apnd(opt, "DEFAULT NULL")
+		if !co.PrimaryKey {
+			opt = str_append(opt, "DEFAULT NULL")
+		}
 	} else {
 		opt = apnd(opt, "DEFAULT ?")
 		args = append(args, co.Default)
