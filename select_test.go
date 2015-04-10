@@ -94,6 +94,12 @@ func TestSelect(t *testing.T) {
 		query:  ``,
 		args:   []interface{}{},
 		errmsg: "sqlbuilder: GROUP BY clause is not found.",
+	}, {
+		stmt: Select(table1).
+			Locks(Lock("UPDATE", table1), Lock("SHARE", table1)),
+		query:  `SELECT * FROM "TABLE_A" FOR UPDATE OF "TABLE_A" SHARE OF "TABLE_A";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}}
 
 	for num, c := range cases {
