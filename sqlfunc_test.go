@@ -1,17 +1,18 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 func TestSqlFuncImplements(t *testing.T) {
-	a := assert.New(t)
-	a.Implements(new(Column), &columnImpl{})
+	fnImplColumn := func(i interface{}) bool {
+		return reflect.TypeOf(i).Implements(reflect.TypeOf(new(Column)).Elem())
+	}
+	fnImplColumn(&columnImpl{})
 }
 
 func TestSqlFunc(t *testing.T) {
-	a := assert.New(t)
 	b := newBuilder()
 	table1 := NewTable(
 		"TABLE_A",
@@ -24,7 +25,13 @@ func TestSqlFunc(t *testing.T) {
 	)
 
 	Func("funcname", table1.C("id")).serialize(b)
-	a.Equal(`funcname("TABLE_A"."id")`, b.query.String())
-	a.Equal([]interface{}{}, b.Args())
-	a.NoError(b.Err())
+	if `funcname("TABLE_A"."id")` != b.query.String() {
+		t.Errorf("failed")
+	}
+	if len(b.Args()) != 0 {
+		t.Errorf("failed")
+	}
+	if b.Err() != nil {
+		t.Errorf("failed")
+	}
 }

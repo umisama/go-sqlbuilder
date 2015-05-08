@@ -1,12 +1,11 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 func TestSelect(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -18,13 +17,7 @@ func TestSelect(t *testing.T) {
 	)
 	acol_id := table1.C("id").As("tbl1id")
 
-	type testcase struct {
-		stmt  Statement
-		query string
-		args  []interface{}
-		err   bool
-	}
-	var cases = []testcase{{
+	var cases = []statementTestCase{{
 		Select(table1).
 			Columns(table1.C("test1"), table1.C("test2")).
 			Where(
@@ -42,7 +35,7 @@ func TestSelect(t *testing.T) {
 			`FROM "TABLE_A" WHERE "TABLE_A"."id"=? AND "TABLE_A"."test1"=? ` +
 			`GROUP BY "TABLE_A"."id" HAVING "TABLE_A"."id"=? ORDER BY "TABLE_A"."id" ASC ` +
 			`LIMIT ? OFFSET ?;`,
-		[]interface{}{1, 2, 1, 10, 20},
+		[]interface{}{int64(1), int64(2), int64(1), 10, 20},
 		false,
 	}, {
 		Select(table1).
@@ -55,7 +48,7 @@ func TestSelect(t *testing.T) {
 			Columns(acol_id).
 			Where(acol_id.Eq(1)),
 		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=?;`,
-		[]interface{}{1},
+		[]interface{}{int64(1)},
 		false,
 	}, {
 		Select(table1).
@@ -64,7 +57,7 @@ func TestSelect(t *testing.T) {
 			OrderBy(false, table1.C("test1")).
 			OrderBy(true, table1.C("test2")),
 		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=? ORDER BY "TABLE_A"."test1" ASC, "TABLE_A"."test2" DESC;`,
-		[]interface{}{1},
+		[]interface{}{int64(1)},
 		false,
 	}, {
 		Select(table1).
@@ -92,20 +85,15 @@ func TestSelect(t *testing.T) {
 		true,
 	}}
 
-	for _, c := range cases {
-		query, args, err := c.stmt.ToSql()
-		a.Equal(c.query, query)
-		a.Equal(c.args, args)
-		if c.err {
-			a.Error(err)
-		} else {
-			a.NoError(err)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
 	}
 }
 
 func TestSubquery(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -121,9 +109,15 @@ func TestSubquery(t *testing.T) {
 		Columns(subquery.C("id")).
 		Where(subquery.C("id").Eq(1)).ToSql()
 
-	a.Equal(`SELECT "SQ1"."id" FROM ( SELECT "TABLE_A"."id" FROM "TABLE_A" ) AS SQ1 WHERE "SQ1"."id"=?;`, query)
-	a.Equal([]interface{}{1}, attrs)
-	a.NoError(err)
+	if `SELECT "SQ1"."id" FROM ( SELECT "TABLE_A"."id" FROM "TABLE_A" ) AS SQ1 WHERE "SQ1"."id"=?;` != query {
+		t.Error("failed \ngot %s", query)
+	}
+	if !reflect.DeepEqual([]interface{}{int64(1)}, attrs) {
+		t.Error("failed \ngot %#v", attrs)
+	}
+	if err != nil {
+		t.Error("failed \ngot %#v", err.Error())
+	}
 }
 
 func BenchmarkSelect(b *testing.B) {

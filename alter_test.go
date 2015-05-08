@@ -1,12 +1,10 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestAlterTable(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -17,13 +15,7 @@ func TestAlterTable(t *testing.T) {
 		IntColumn("test2", nil),
 	)
 
-	type testcase struct {
-		stmt  Statement
-		query string
-		args  []interface{}
-		err   bool
-	}
-	var cases = []testcase{{
+	var cases = []statementTestCase{{
 		AlterTable(table1).
 			RenameTo("TABLE_AAA").
 			AddColumn(IntColumn("test3", nil)).
@@ -104,65 +96,67 @@ func TestAlterTable(t *testing.T) {
 		true,
 	}}
 
-	for _, c := range cases {
-		query, args, err := c.stmt.ToSql()
-		a.Equal(c.query, query)
-		a.Equal(c.args, args)
-		if c.err {
-			a.Error(err)
-		} else {
-			a.NoError(err)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
 	}
 }
 
 func TestAlterTableApplyToTable(t *testing.T) {
-	a := assert.New(t)
-	table1 := NewTable(
-		"TABLE_A",
-		&TableOption{},
-		IntColumn("id", &ColumnOption{
-			PrimaryKey: true,
-		}),
-		IntColumn("test1", nil),
-		IntColumn("test2", nil),
-	)
+	var cases = []struct {
+		stmt           func(Table) *AlterTableStatement
+		expect_columns []string
+		expect_name    string
+	}{{
+		stmt: func(t Table) *AlterTableStatement {
+			return AlterTable(t).
+				RenameTo("TABLE_AAA").
+				AddColumn(IntColumn("test3", nil)).
+				AddColumnFirst(IntColumn("test4", nil)).
+				AddColumnAfter(IntColumn("test5", nil), t.C("id")).
+				ChangeColumn(t.C("test1"), IntColumn("test1a", nil)).
+				ChangeColumnFirst(t.C("test2"), IntColumn("test2a", nil)).
+				DropColumn(t.C("id"))
+		},
+		expect_columns: []string{"test2a", "test4", "test5", "test1a", "test3"},
+		expect_name:    "TABLE_AAA",
+	}, {
+		stmt: func(t Table) *AlterTableStatement {
+			return AlterTable(t).
+				ChangeColumnAfter(t.C("test1"), IntColumn("test1a", nil), t.C("test2"))
+		},
+		expect_columns: []string{"id", "test2", "test1a"},
+		expect_name:    "TABLE_A",
+	}}
 
-	stmt := AlterTable(table1).
-		RenameTo("TABLE_AAA").
-		AddColumn(IntColumn("test3", nil)).
-		AddColumnFirst(IntColumn("test4", nil)).
-		AddColumnAfter(IntColumn("test5", nil), table1.C("id")).
-		ChangeColumn(table1.C("test1"), IntColumn("test1a", nil)).
-		ChangeColumnFirst(table1.C("test2"), IntColumn("test2a", nil)).
-		DropColumn(table1.C("id"))
-	err := stmt.ApplyToTable()
-	a.NoError(err)
+	for num, c := range cases {
+		table1 := NewTable(
+			"TABLE_A",
+			&TableOption{},
+			IntColumn("id", &ColumnOption{
+				PrimaryKey: true,
+			}),
+			IntColumn("test1", nil),
+			IntColumn("test2", nil),
+		)
 
-	expect := []string{"test2a", "test4", "test5", "test1a", "test3"}
-	a.Len(table1.Columns(), len(expect))
-	for i, col := range table1.Columns() {
-		a.Equal(expect[i], col.column_name())
-	}
-	a.Equal(table1.Name(), "TABLE_AAA")
-
-	table1 = NewTable(
-		"TABLE_A",
-		&TableOption{},
-		IntColumn("id", &ColumnOption{
-			PrimaryKey: true,
-		}),
-		IntColumn("test1", nil),
-		IntColumn("test2", nil),
-	)
-
-	stmt = AlterTable(table1).
-		ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("test2"))
-	err = stmt.ApplyToTable()
-	a.NoError(err)
-	expect = []string{"id", "test2", "test1a"}
-	a.Len(table1.Columns(), len(expect))
-	for i, col := range table1.Columns() {
-		a.Equal(expect[i], col.column_name())
+		err := c.stmt(table1).ApplyToTable()
+		if err != nil {
+			t.Errorf("failed on %d", num)
+		}
+		if len(table1.Columns()) != len(c.expect_columns) {
+			t.Errorf("failed on %d", num)
+		}
+		for i, col := range table1.Columns() {
+			if c.expect_columns[i] != col.column_name() {
+				t.Errorf("failed on %d", num)
+				break
+			}
+		}
+		if table1.Name() != c.expect_name {
+			t.Errorf("failed on %d", num)
+		}
 	}
 }

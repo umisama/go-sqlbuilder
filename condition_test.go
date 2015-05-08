@@ -1,12 +1,10 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestBinaryCondition(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -16,15 +14,7 @@ func TestBinaryCondition(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
-
-	type testcase struct {
-		cond  Condition
-		query string
-		attrs []interface{}
-		err   error
-	}
-
-	var cases = []testcase{
+	var cases = []conditionTestCase{
 		{
 			table1.C("id").Eq(table1.C("test1")),
 			`"TABLE_A"."id"="TABLE_A"."test1"`,
@@ -68,12 +58,12 @@ func TestBinaryCondition(t *testing.T) {
 		}, {
 			table1.C("id").Between(1, 2),
 			`"TABLE_A"."id" BETWEEN ? AND ?`,
-			[]interface{}{1, 2},
+			[]interface{}{int64(1), int64(2)},
 			nil,
 		}, {
 			table1.C("id").In(1, 2),
 			`"TABLE_A"."id" IN ( ?, ? )`,
-			[]interface{}{1, 2},
+			[]interface{}{int64(1), int64(2)},
 			nil,
 		}, {
 			table1.C("id").Eq(nil),
@@ -87,31 +77,27 @@ func TestBinaryCondition(t *testing.T) {
 			nil,
 		}, {
 			table1.C("id").Gt([]byte(nil)),
-			``,
+			`"TABLE_A"."id"`,
 			[]interface{}{},
 			newError("NULL can not be used with %s operator"),
 		}, {
 			// case for fail
 			table1.C("id").In(NewTable("DUMMY TABLE", &TableOption{}, StringColumn("id", nil))),
-			``,
+			`"TABLE_A"."id" IN ( `,
 			[]interface{}{},
 			newError("got %T type, but literal is not supporting this"),
 		},
 	}
 
-	for _, c := range cases {
-		bldr := newBuilder()
-		c.cond.serialize(bldr)
-		if bldr.err == nil {
-			a.Equal(c.query, bldr.query.String())
-			a.Equal(c.attrs, bldr.args)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
-		a.Equal(c.err == nil, bldr.err == nil)
 	}
 }
 
 func TestBinaryConditionForSqlFunctions(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -121,15 +107,7 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
-
-	type testcase struct {
-		cond  Condition
-		query string
-		attrs []interface{}
-		err   error
-	}
-
-	var cases = []testcase{
+	var cases = []conditionTestCase{
 		{
 			Func("count", table1.C("id")).Eq(table1.C("test1")),
 			`count("TABLE_A"."id")="TABLE_A"."test1"`,
@@ -173,36 +151,32 @@ func TestBinaryConditionForSqlFunctions(t *testing.T) {
 		}, {
 			Func("count", table1.C("id")).Between(1, 2),
 			`count("TABLE_A"."id") BETWEEN ? AND ?`,
-			[]interface{}{1, 2},
+			[]interface{}{int64(1), int64(2)},
 			nil,
 		}, {
 			Func("count", table1.C("id")).In(1, 2),
 			`count("TABLE_A"."id") IN ( ?, ? )`,
-			[]interface{}{1, 2},
+			[]interface{}{int64(1), int64(2)},
 			nil,
 		}, {
 			// case for fail
 			Func("count", table1.C("id")).In(NewTable("DUMMY TABLE", &TableOption{}, StringColumn("id", nil))),
-			``,
+			`count("TABLE_A"."id") IN ( `,
 			[]interface{}{},
 			newError("unsupported type"),
 		},
 	}
 
-	for _, c := range cases {
-		bldr := newBuilder()
-		c.cond.serialize(bldr)
-		if bldr.err == nil {
-			a.Equal(c.query, bldr.query.String())
-			a.Equal(c.attrs, bldr.args)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
-		a.Equal(c.err == nil, bldr.err == nil)
 	}
 
 }
 
 func TestConnectCondition(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -212,13 +186,7 @@ func TestConnectCondition(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
-	type testcase struct {
-		cond  Condition
-		query string
-		attrs []interface{}
-		err   error
-	}
-	cases := []testcase{{
+	cases := []conditionTestCase{{
 		And(
 			table1.C("id").Eq(table1.C("test1")),
 			table1.C("id").Eq(1),
@@ -261,13 +229,10 @@ func TestConnectCondition(t *testing.T) {
 		[]interface{}{int64(1)},
 		nil,
 	}}
-	for _, c := range cases {
-		bldr := newBuilder()
-		c.cond.serialize(bldr)
-		if bldr.err == nil {
-			a.Equal(c.query, bldr.query.String())
-			a.Equal(c.attrs, bldr.args)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
-		a.Equal(c.err == nil, bldr.err == nil)
 	}
 }

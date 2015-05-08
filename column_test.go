@@ -1,33 +1,39 @@
 package sqlbuilder
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestColumnImplements(t *testing.T) {
-	a := assert.New(t)
-	a.Implements(new(Column), &columnImpl{})
-	a.Implements(new(Column), &errorColumn{})
-	a.Implements(new(Column), &aliasColumn{})
+	fnImplColumn := func(i interface{}) bool {
+		return reflect.TypeOf(i).Implements(reflect.TypeOf(new(Column)).Elem())
+	}
+	if !fnImplColumn(&columnImpl{}) {
+		t.Errorf("fail")
+	}
+	if !fnImplColumn(&errorColumn{}) {
+		t.Errorf("fail")
+	}
+	if !fnImplColumn(&aliasColumn{}) {
+		t.Errorf("fail")
+	}
 }
 
 func TestColumnOptionImpl(t *testing.T) {
-	a := assert.New(t)
-
-	a.Equal(&columnConfigImpl{
+	if !reflect.DeepEqual(&columnConfigImpl{
 		name: "name",
 		typ:  ColumnTypeBytes,
 		opt: &ColumnOption{
 			Unique: true,
-		},
-	}, newColumnConfigImpl("name", ColumnTypeBytes, &ColumnOption{
-		Unique: true,
-	}))
-	a.Equal(&columnConfigImpl{
+		}}, newColumnConfigImpl("name", ColumnTypeBytes, &ColumnOption{Unique: true})) {
+		t.Errorf("fail")
+	}
+	if !reflect.DeepEqual(&columnConfigImpl{
 		name: "name",
 		typ:  ColumnTypeBytes,
 		opt:  &ColumnOption{},
-	}, newColumnConfigImpl("name", ColumnTypeBytes, nil))
+	}, newColumnConfigImpl("name", ColumnTypeBytes, nil)) {
+		t.Errorf("fail")
+	}
 }

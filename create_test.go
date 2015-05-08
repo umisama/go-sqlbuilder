@@ -2,12 +2,9 @@ package sqlbuilder
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreate(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -56,13 +53,7 @@ func TestCreate(t *testing.T) {
 		columns: make([]Column, 0),
 	}
 
-	type testcase struct {
-		stmt  Statement
-		query string
-		args  []interface{}
-		err   bool
-	}
-	var cases = []testcase{{
+	var cases = []statementTestCase{{
 		CreateTable(table1).IfNotExists(),
 		`CREATE TABLE IF NOT EXISTS "TABLE_A" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "test1" INTEGER UNIQUE, "test2" TEXT );`,
 		[]interface{}{},
@@ -104,14 +95,10 @@ func TestCreate(t *testing.T) {
 		true,
 	}}
 
-	for _, c := range cases {
-		query, args, err := c.stmt.ToSql()
-		a.Equal(c.query, query)
-		a.Equal(c.args, args)
-		if c.err {
-			a.Error(err)
-		} else {
-			a.NoError(err)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
 	}
 }

@@ -1,13 +1,11 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 func TestInsert(t *testing.T) {
-	a := assert.New(t)
 	table1 := NewTable(
 		"TABLE_A",
 		&TableOption{},
@@ -23,13 +21,7 @@ func TestInsert(t *testing.T) {
 		BytesColumn("bytes", nil),
 	)
 
-	type testcase struct {
-		stmt  Statement
-		query string
-		args  []interface{}
-		err   bool
-	}
-	var cases = []testcase{{
+	var cases = []statementTestCase{{
 		Insert(table1).
 			Columns(table1.C("str"), table1.C("bool"), table1.C("float"), table1.C("date"), table1.C("bytes")).
 			Values("hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
@@ -50,7 +42,7 @@ func TestInsert(t *testing.T) {
 		// all columns if Columns() was not setted.
 		Insert(table1).Values(1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
 		`INSERT INTO "TABLE_A" ( "id", "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ?, ? );`,
-		[]interface{}{1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
+		[]interface{}{int64(1), "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
 		false,
 	}, {
 		// error if column's length and value's length are not eaual.
@@ -72,14 +64,10 @@ func TestInsert(t *testing.T) {
 		true,
 	}}
 
-	for _, c := range cases {
-		query, args, err := c.stmt.ToSql()
-		a.Equal(c.query, query)
-		a.Equal(c.args, args)
-		if c.err {
-			a.Error(err)
-		} else {
-			a.NoError(err)
+	for num, c := range cases {
+		mes, args, ok := c.Run()
+		if !ok {
+			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
 	}
 }

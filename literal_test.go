@@ -1,20 +1,18 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 	"time"
 )
 
 func TestLiteralConvert(t *testing.T) {
-	a := assert.New(t)
-	type testcase struct {
+	str := "makise-kurisu"
+	var cases = []struct {
 		in  literal
 		out interface{}
 		err bool
-	}
-	str := "makise-kurisu"
-	var cases = []testcase{
+	}{
 		{toLiteral(int(10)), int64(10), false},
 		{toLiteral(int64(10)), int64(10), false},
 		{toLiteral(uint(10)), int64(10), false},
@@ -31,25 +29,29 @@ func TestLiteralConvert(t *testing.T) {
 		{toLiteral(complex(0, 0)), nil, true},
 	}
 
-	for _, c := range cases {
+	for num, c := range cases {
 		val, err := c.in.(*literalImpl).converted()
-		a.Equal(c.out, val)
+		if !reflect.DeepEqual(c.out, val) {
+			t.Error("failed on %d", num)
+		}
 		if c.err {
-			a.Error(err)
+			if err == nil {
+				t.Error("failed on %d", num)
+			}
 		} else {
-			a.NoError(err)
+			if err != nil {
+				t.Error("failed on %d", num)
+			}
 		}
 	}
 }
 
 func TestLiteralString(t *testing.T) {
-	a := assert.New(t)
-	type testcase struct {
+	var cases = []struct {
 		in  literal
 		out string
 		err bool
-	}
-	var cases = []testcase{
+	}{
 		{toLiteral(int(10)), "10", false},
 		{toLiteral(int64(10)), "10", false},
 		{toLiteral(uint(10)), "10", false},
@@ -64,27 +66,29 @@ func TestLiteralString(t *testing.T) {
 		{toLiteral(complex(0, 0)), "", true},
 	}
 
-	for _, c := range cases {
+	for num, c := range cases {
 		val := c.in.(*literalImpl).string()
-		a.Equal(c.out, val)
+		if c.out != val {
+			t.Error("failed on %d", num)
+		}
 	}
 }
 
 func TestLiteralIsNil(t *testing.T) {
-	a := assert.New(t)
-	type testcase struct {
+	var cases = []struct {
 		in  literal
 		out bool
-	}
-	var cases = []testcase{
+	}{
 		{toLiteral(int(10)), false},
 		{toLiteral([]byte{}), false},
 		{toLiteral(nil), true},
 		{toLiteral([]byte(nil)), true},
 	}
 
-	for _, c := range cases {
+	for num, c := range cases {
 		isnil := c.in.IsNil()
-		a.Equal(c.out, isnil)
+		if c.out != isnil {
+			t.Error("failed on %d", num)
+		}
 	}
 }

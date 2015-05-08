@@ -3,7 +3,6 @@ package sqlbuilder
 import (
 	errs "errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -15,9 +14,10 @@ func TestMain(m *testing.M) {
 }
 
 func TestError(t *testing.T) {
-	a := assert.New(t)
 	err := newError("hogehogestring")
-	a.Equal("sqlbuilder: hogehogestring", err.Error())
+	if "sqlbuilder: hogehogestring" != err.Error() {
+		t.Errorf("failed\ngot %s", err.Error)
+	}
 }
 
 type TestDialect struct{}

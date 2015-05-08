@@ -1,52 +1,81 @@
 package sqlbuilder
 
 import (
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 func TestTable(t *testing.T) {
-	a := assert.New(t)
-
 	var table1 Table
-	a.Panics(func() {
+	var fnPanic = func(fn func()) (ok bool) {
+		defer func() {
+			if r := recover(); r != nil {
+				ok = true
+			} else {
+				ok = false
+			}
+		}()
+		fn()
+		return
+	}
+
+	// be panic
+	if !fnPanic(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
 			&TableOption{},
 		)
-	})
+	}) {
+		t.Errorf("failed")
+	}
+	if table1 != nil {
+		t.Errorf("failed")
+	}
 
-	a.NotPanics(func() {
+	// not panic
+	if fnPanic(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
 			&TableOption{},
 			IntColumn("id", nil),
 		)
-	})
-	a.NotNil(table1)
+	}) {
+		t.Errorf("failed")
+	}
+	if table1 == nil {
+		t.Errorf("failed")
+	}
 
-	a.NotPanics(func() {
+	// not panic
+	if fnPanic(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
 			nil,
 			IntColumn("id", nil),
 		)
-	})
-	a.NotNil(table1)
+	}) {
+		t.Errorf("failed")
+	}
+	if table1 == nil {
+		t.Errorf("failed")
+	}
 
-	a.NotPanics(func() {
+	// not panic
+	if fnPanic(func() {
 		table1 = NewTable(
 			"TABLE_NAME",
 			nil,
 			IntColumn("id", nil),
 		)
-	})
-	a.NotNil(table1)
+	}) {
+		t.Errorf("failed")
+	}
+	if table1 == nil {
+		t.Errorf("failed")
+	}
 }
 
 func TestJoinTable(t *testing.T) {
-	a := assert.New(t)
-
 	l_table := NewTable(
 		"LEFT_TABLE",
 		&TableOption{},
@@ -75,51 +104,100 @@ func TestJoinTable(t *testing.T) {
 	b := newBuilder()
 	joinedTable := l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
 	joinedTable.serialize(b)
-	a.Equal(`"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.query.String())
-	a.NoError(b.err)
-	a.Empty(b.args)
+	if `"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"` != b.query.String() {
+		t.Error("failed")
+	}
+	if b.err != nil {
+		t.Error("failed")
+	}
+	if len(b.args) != 0 {
+		t.Error("failed")
+	}
 
 	// left outer join
 	b = newBuilder()
 	joinedTable = l_table.LeftOuterJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
 	joinedTable.serialize(b)
-	a.Equal(`"LEFT_TABLE" LEFT OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.query.String())
-	a.NoError(b.err)
-	a.Empty(b.args)
+	if `"LEFT_TABLE" LEFT OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"` != b.query.String() {
+		t.Error("failed")
+	}
+	if b.err != nil {
+		t.Error("failed")
+	}
+	if len(b.args) != 0 {
+		t.Error("failed")
+	}
 
 	// right outer join
 	b = newBuilder()
 	joinedTable = l_table.RightOuterJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
 	joinedTable.serialize(b)
-	a.Equal(`"LEFT_TABLE" RIGHT OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.query.String())
-	a.NoError(b.err)
-	a.Empty(b.args)
+	if `"LEFT_TABLE" RIGHT OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"` != b.query.String() {
+		t.Error("failed")
+	}
+	if b.err != nil {
+		t.Error("failed")
+	}
+	if len(b.args) != 0 {
+		t.Error("failed")
+	}
 
 	// full outer join
 	b = newBuilder()
 	joinedTable = l_table.FullOuterJoin(r_table, l_table.C("right_id").Eq(r_table.C("id")))
 	joinedTable.serialize(b)
-	a.Equal(`"LEFT_TABLE" FULL OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"`, b.query.String())
-	a.NoError(b.err)
-	a.Empty(b.args)
+	if `"LEFT_TABLE" FULL OUTER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id"` != b.query.String() {
+		t.Error("failed")
+	}
+	if b.err != nil {
+		t.Error("failed")
+	}
+	if len(b.args) != 0 {
+		t.Error("failed")
+	}
 
 	// joined table column
-	a.Equal(l_table.C("right_id"), joinedTable.C("right_id"))
-	a.Equal(r_table.C("value"), joinedTable.C("value"))
-	a.IsType(&errorColumn{}, joinedTable.C("not_exist_column"))
-	a.IsType(&errorColumn{}, joinedTable.C("id"))
+	if !reflect.DeepEqual(l_table.C("right_id"), joinedTable.C("right_id")) {
+		t.Error("failed")
+	}
+	if !reflect.DeepEqual(r_table.C("value"), joinedTable.C("value")) {
+		t.Error("failed")
+	}
+	if _, ok := joinedTable.C("not_exist_column").(*errorColumn); !ok {
+		t.Error("failed")
+	}
+	if _, ok := joinedTable.C("id").(*errorColumn); !ok {
+		t.Error("failed")
+	}
 
 	// combination
 	b = newBuilder()
 	joinedTable = l_table.InnerJoin(r_table, l_table.C("right_id").Eq(r_table.C("id"))).InnerJoin(rr_table, l_table.C("right_id").Eq(rr_table.C("id")))
 	joinedTable.serialize(b)
-	a.Equal(`"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id" INNER JOIN "RIGHTRIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHTRIGHT_TABLE"."id"`, b.query.String())
-	a.NoError(b.err)
-	a.Empty(b.args)
+	if `"LEFT_TABLE" INNER JOIN "RIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHT_TABLE"."id" INNER JOIN "RIGHTRIGHT_TABLE" ON "LEFT_TABLE"."right_id"="RIGHTRIGHT_TABLE"."id"` != b.query.String() {
+		t.Error("failed")
+	}
+	if b.err != nil {
+		t.Error("failed")
+	}
+	if len(b.args) != 0 {
+		t.Error("failed")
+	}
 }
 
 func TestTableColumnOperation(t *testing.T) {
-	a := assert.New(t)
+	var fnEqualColumnName = func(cols []Column, expect []string) bool {
+		if len(cols) != len(expect) {
+			return false
+		}
+		for i, col := range cols {
+			if col.column_name() != expect[i] {
+				return false
+			}
+		}
+		return true
+	}
+
 	table1 := NewTable(
 		"TABLE_NAME",
 		nil,
@@ -127,96 +205,101 @@ func TestTableColumnOperation(t *testing.T) {
 	).(*table)
 
 	// initial check
-	if a.Len(table1.Columns(), 1) {
-		expect := []string{"id"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if !fnEqualColumnName(table1.Columns(), []string{"id"}) {
+		t.Error("failed")
 	}
 
 	// AddColumnLast
 	err := table1.AddColumnLast(IntColumn("test1", nil))
-	a.NoError(err)
-	if a.Len(table1.Columns(), 2) {
-		expect := []string{"id", "test1"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err != nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"id", "test1"}) {
+		t.Error("failed")
 	}
 
 	// AddColumnFirst
 	err = table1.AddColumnFirst(IntColumn("first", nil))
-	a.NoError(err)
-	if a.Len(table1.Columns(), 3) {
-		expect := []string{"first", "id", "test1"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err != nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"first", "id", "test1"}) {
+		t.Error("failed")
 	}
 
 	// AddColumnAfter
 	err = table1.AddColumnAfter(IntColumn("second", nil), table1.C("first"))
-	a.NoError(err)
+	if err != nil {
+		t.Error("failed")
+	}
 	err = table1.AddColumnAfter(IntColumn("aaa", nil), table1.C("invalid"))
-	a.Error(err)
-	if a.Len(table1.Columns(), 4) {
-		expect := []string{"first", "second", "id", "test1"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err == nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"first", "second", "id", "test1"}) {
+		t.Error("failed")
 	}
 
 	// ChangeColumn
 	err = table1.ChangeColumn(table1.C("id"), IntColumn("third", nil))
-	a.NoError(err)
+	if err != nil {
+		t.Error("failed")
+	}
 	err = table1.ChangeColumn(table1.C("invalid"), IntColumn("third", nil))
-	a.Error(err)
-	if a.Len(table1.Columns(), 4) {
-		expect := []string{"first", "second", "third", "test1"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err == nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"first", "second", "third", "test1"}) {
+		t.Error("failed")
 	}
 
 	// ChangeColumnFirst
 	err = table1.ChangeColumnFirst(table1.C("test1"), IntColumn("new_first", nil))
-	a.NoError(err)
+	if err != nil {
+		t.Error("failed")
+	}
 	err = table1.ChangeColumnFirst(table1.C("invalid"), IntColumn("new_first", nil))
-	a.Error(err)
-	if a.Len(table1.Columns(), 4) {
-		expect := []string{"new_first", "first", "second", "third"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err == nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"new_first", "first", "second", "third"}) {
+		t.Error("failed")
 	}
 
 	// ChangeColumnAfter
 	err = table1.ChangeColumnAfter(table1.C("new_first"), IntColumn("fourth", nil), table1.C("third"))
-	a.NoError(err)
+	if err != nil {
+		t.Error("failed")
+	}
 	err = table1.ChangeColumnAfter(table1.C("invalid"), IntColumn("fourth", nil), table1.C("third"))
-	a.Error(err)
+	if err == nil {
+		t.Error("failed")
+	}
 	err = table1.ChangeColumnAfter(table1.C("second"), IntColumn("fourth", nil), table1.C("invalid"))
-	a.Error(err)
-	if a.Len(table1.Columns(), 4) {
-		expect := []string{"first", "second", "third", "fourth"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err == nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"first", "second", "third", "fourth"}) {
+		t.Error("failed")
 	}
 
 	// ChangeColumnAfter
 	err = table1.DropColumn(table1.C("fourth"))
-	a.NoError(err)
+	if err != nil {
+		t.Error("failed")
+	}
 	err = table1.DropColumn(table1.C("invalid"))
-	a.Error(err)
-	if a.Len(table1.Columns(), 3) {
-		expect := []string{"first", "second", "third"}
-		for i, col := range table1.Columns() {
-			a.Equal(col.column_name(), expect[i])
-		}
+	if err == nil {
+		t.Error("failed")
+	}
+	if !fnEqualColumnName(table1.Columns(), []string{"first", "second", "third"}) {
+		t.Error("failed")
 	}
 
+	// SetName
 	table1.SetName("TABLE_MODIFIED")
-	a.Equal("TABLE_MODIFIED", table1.Name())
+	if "TABLE_MODIFIED" != table1.Name() {
+		t.Error("failed")
+	}
 	return
 }
