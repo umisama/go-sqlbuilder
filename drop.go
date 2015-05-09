@@ -3,12 +3,24 @@ package sqlbuilder
 // DeleteTableStatement represents a "DROP TABLE" statement.
 type DropTableStatement struct {
 	table Table
+
+	err error
 }
 
 // DropTable returns new "DROP TABLE" statement. The table is Table object to drop.
-func DropTable(table Table) *DropTableStatement {
+func DropTable(tbl Table) *DropTableStatement {
+	if tbl == nil {
+		return &DropTableStatement{
+			err: newError("table is nil."),
+		}
+	}
+	if _, ok := tbl.(*table); !ok {
+		return &DropTableStatement{
+			err: newError("table is not natural table."),
+		}
+	}
 	return &DropTableStatement{
-		table: table,
+		table: tbl,
 	}
 }
 
@@ -18,14 +30,12 @@ func (b *DropTableStatement) ToSql() (query string, args []interface{}, err erro
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
-
-	bldr.Append("DROP TABLE ")
-	if b.table != nil {
-		bldr.AppendItem(b.table)
-	} else {
-		bldr.SetError(newError("table is nil"))
+	if b.err != nil {
+		bldr.SetError(b.err)
 		return
 	}
 
+	bldr.Append("DROP TABLE ")
+	bldr.AppendItem(b.table)
 	return
 }

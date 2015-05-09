@@ -48,7 +48,8 @@ func TestCreate(t *testing.T) {
 			Size: 255,
 		}),
 	)
-	table_zero_columns := &table{
+	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
+	tableZeroColumns := &table{
 		name:    "ZERO_TABLE",
 		columns: make([]Column, 0),
 	}
@@ -69,12 +70,17 @@ func TestCreate(t *testing.T) {
 		[]interface{}{},
 		false,
 	}, {
-		CreateTable(table_zero_columns),
+		CreateTable(tableZeroColumns),
 		``,
 		[]interface{}{},
 		true,
 	}, {
 		CreateTable(nil),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		CreateTable(tableJoined),
 		``,
 		[]interface{}{},
 		true,
@@ -90,6 +96,16 @@ func TestCreate(t *testing.T) {
 		true,
 	}, {
 		CreateIndex(table1).Name("I_TABLE_A"),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		CreateIndex(nil).Name("I_TABLE_A"),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		CreateIndex(tableJoined).Name("I_TABLE_A"),
 		``,
 		[]interface{}{},
 		true,

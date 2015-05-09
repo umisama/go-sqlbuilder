@@ -14,6 +14,15 @@ func TestDropTable(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
+	table2 := NewTable(
+		"TABLE_B",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+	)
+	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
+
 	var cases = []statementTestCase{{
 		DropTable(table1),
 		`DROP TABLE "TABLE_A";`,
@@ -21,6 +30,11 @@ func TestDropTable(t *testing.T) {
 		false,
 	}, {
 		DropTable(nil),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		DropTable(tableJoined),
 		``,
 		[]interface{}{},
 		true,

@@ -14,6 +14,15 @@ func TestUpdate(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
+	table2 := NewTable(
+		"TABLE_B",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+	)
+	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
+
 	var cases = []statementTestCase{{
 		Update(table1).Where(table1.C("id").Eq(1)).
 			Set(table1.C("test1"), 10).
@@ -49,6 +58,17 @@ func TestUpdate(t *testing.T) {
 		``,
 		[]interface{}{},
 		true,
+	}, {
+		Update(nil).Where(table1.C("id").Eq(1)).
+			Set(table1.C("test1"), "foo"),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		Update(tableJoined),
+		``,
+		[]interface{}{},
+		true,
 	}}
 	for num, c := range cases {
 		mes, args, ok := c.Run()
@@ -56,5 +76,4 @@ func TestUpdate(t *testing.T) {
 			t.Errorf(mes+" (case no.%d)", append(args, num)...)
 		}
 	}
-
 }

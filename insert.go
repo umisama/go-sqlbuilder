@@ -5,10 +5,22 @@ type InsertStatement struct {
 	columns ColumnList
 	values  []literal
 	into    Table
+
+	err error
 }
 
 // Insert returns new INSERT statement. The table is Table object for into.
 func Insert(into Table) *InsertStatement {
+	if into == nil {
+		return &InsertStatement{
+			err: newError("table is nil."),
+		}
+	}
+	if _, ok := into.(*table); !ok {
+		return &InsertStatement{
+			err: newError("table is not natural table."),
+		}
+	}
 	return &InsertStatement{
 		into:    into,
 		columns: make(ColumnList, 0),
@@ -19,12 +31,18 @@ func Insert(into Table) *InsertStatement {
 // Columns sets columns for insert.  This overwrite old results of Columns() or Set().
 // If not set this, get error on ToSql().
 func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
+	if b.err != nil {
+		return b
+	}
 	b.columns = ColumnList(columns)
 	return b
 }
 
 // Values sets VALUES clause. This overwrite old results of Values() or Set().
 func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
+	if b.err != nil {
+		return b
+	}
 	sl := make([]literal, len(values))
 	for i := range values {
 		sl[i] = toLiteral(values[i])
@@ -36,6 +54,9 @@ func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
 // Set sets the column and value togeter.
 // Set cannot be called with Columns() or Values() in a statement.
 func (b *InsertStatement) Set(column Column, value interface{}) *InsertStatement {
+	if b.err != nil {
+		return b
+	}
 	b.columns = append(b.columns, column)
 	b.values = append(b.values, toLiteral(value))
 	return b
@@ -47,18 +68,17 @@ func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) 
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
+	if b.err != nil {
+		bldr.SetError(b.err)
+		return
+	}
 
 	// INSERT
 	bldr.Append("INSERT")
 
 	// INTO Table
 	bldr.Append(" INTO ")
-	if b.into != nil {
-		bldr.AppendItem(b.into)
-	} else {
-		bldr.SetError(newError("into is nil"))
-		return
-	}
+	bldr.AppendItem(b.into)
 
 	// (COLUMN)
 	if len(b.columns) == 0 {

@@ -15,6 +15,14 @@ func TestSelect(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
+	table2 := NewTable(
+		"TABLE_B",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+	)
+	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 	acol_id := table1.C("id").As("tbl1id")
 
 	var cases = []statementTestCase{{
@@ -68,6 +76,12 @@ func TestSelect(t *testing.T) {
 	}, {
 		Select(table1),
 		`SELECT * FROM "TABLE_A";`,
+		[]interface{}{},
+		false,
+	}, {
+		Select(tableJoined).
+			Columns(Star),
+		`SELECT * FROM "TABLE_A" INNER JOIN "TABLE_B" ON "TABLE_A"."test1"="TABLE_B"."id";`,
 		[]interface{}{},
 		false,
 	}, {

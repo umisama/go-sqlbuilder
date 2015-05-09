@@ -11,10 +11,17 @@ type SelectStatement struct {
 	limit    int
 	offset   int
 	having   Condition
+
+	err error
 }
 
 // Select returns new SELECT statement with from as FROM clause.
 func Select(from Table) *SelectStatement {
+	if from == nil {
+		return &SelectStatement{
+			err: newError("table is nil."),
+		}
+	}
 	return &SelectStatement{
 		from: from,
 	}
@@ -23,25 +30,36 @@ func Select(from Table) *SelectStatement {
 // Columns set columns for select.
 // Get all columns (use *) if it is not setted.
 func (b *SelectStatement) Columns(columns ...Column) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	b.columns = selectColumnList(columns)
 	return b
-
 }
 
 // Where sets WHERE clause.  The cond is filter condition.
 func (b *SelectStatement) Where(cond Condition) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	b.where = cond
 	return b
 }
 
 // Distinct sets DISTINCT clause.
 func (b *SelectStatement) Distinct() *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	b.distinct = true
 	return b
 }
 
 // GroupBy sets "GROUP BY" clause by the columns.
 func (b *SelectStatement) GroupBy(columns ...Column) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	ex_column := make([]serializable, len(columns))
 	for i := range columns {
 		ex_column[i] = columns[i]
@@ -52,12 +70,18 @@ func (b *SelectStatement) GroupBy(columns ...Column) *SelectStatement {
 
 // GroupBy sets "HAVING" clause with the cond.
 func (b *SelectStatement) Having(cond Condition) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	b.having = cond
 	return b
 }
 
 // OrderBy sets "ORDER BY" clause. Use descending order if the desc is true, by the columns.
 func (b *SelectStatement) OrderBy(desc bool, columns ...Column) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	if b.orderBy == nil {
 		b.orderBy = make([]serializable, 0)
 	}
@@ -70,32 +94,38 @@ func (b *SelectStatement) OrderBy(desc bool, columns ...Column) *SelectStatement
 
 // Limit sets LIMIT clause.
 func (b *SelectStatement) Limit(limit int) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	b.limit = limit
 	return b
 }
 
 // Offset sets OFFSET clause.
 func (b *SelectStatement) Offset(offset int) *SelectStatement {
+	if b.err != nil {
+		return b
+	}
 	b.offset = offset
 	return b
 }
 
 func (b *SelectStatement) serialize(bldr *builder) {
+	if b.err != nil {
+		bldr.SetError(b.err)
+		return
+	}
+
 	// SELECT COLUMN
 	bldr.Append("SELECT ")
 	if b.distinct {
 		bldr.Append("DISTINCT ")
 	}
-
 	bldr.AppendItem(b.columns)
 
 	// FROM
-	if b.from != nil {
-		bldr.Append(" FROM ")
-		bldr.AppendItem(b.from)
-	} else {
-		bldr.SetError(newError("from is nil"))
-	}
+	bldr.Append(" FROM ")
+	bldr.AppendItem(b.from)
 
 	// WHERE
 	if b.where != nil {

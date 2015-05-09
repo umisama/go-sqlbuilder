@@ -4,10 +4,22 @@ package sqlbuilder
 type DeleteStatement struct {
 	from  Table
 	where Condition
+
+	err error
 }
 
 // Delete returns new DELETE statement. The table is Table object to delete from.
 func Delete(from Table) *DeleteStatement {
+	if from == nil {
+		return &DeleteStatement{
+			err: newError("from is nil."),
+		}
+	}
+	if _, ok := from.(*table); !ok {
+		return &DeleteStatement{
+			err: newError("CreateTable can use only natural table."),
+		}
+	}
 	return &DeleteStatement{
 		from: from,
 	}
@@ -15,6 +27,9 @@ func Delete(from Table) *DeleteStatement {
 
 // Where sets WHERE clause. cond is filter condition.
 func (b *DeleteStatement) Where(cond Condition) *DeleteStatement {
+	if b.err != nil {
+		return b
+	}
 	b.where = cond
 	return b
 }
@@ -25,14 +40,13 @@ func (b *DeleteStatement) ToSql() (query string, args []interface{}, err error) 
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
-
-	bldr.Append("DELETE FROM ")
-	if b.from != nil {
-		bldr.AppendItem(b.from)
-	} else {
-		bldr.SetError(newError("table is nil"))
+	if b.err != nil {
+		bldr.SetError(b.err)
 		return
 	}
+
+	bldr.Append("DELETE FROM ")
+	bldr.AppendItem(b.from)
 
 	if b.where != nil {
 		bldr.Append(" WHERE ")

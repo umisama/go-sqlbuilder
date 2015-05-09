@@ -6,32 +6,43 @@ type CreateIndexStatement struct {
 	columns     []Column
 	name        string
 	ifNotExists bool
+
+	err error
 }
 
 // CreateTableStatement represents a "CREATE TABLE" statement.
 type CreateTableStatement struct {
 	table       Table
 	ifNotExists bool
+
+	err error
 }
 
 // CreateTable returns new "CREATE TABLE" statement. The table is Table object to create.
-func CreateTable(table Table) *CreateTableStatement {
+func CreateTable(tbl Table) *CreateTableStatement {
+	if tbl == nil {
+		return &CreateTableStatement{
+			err: newError("table is nil."),
+		}
+	}
+	if _, ok := tbl.(*table); !ok {
+		return &CreateTableStatement{
+			err: newError("CreateTable can use only natural table."),
+		}
+	}
+
 	return &CreateTableStatement{
-		table: table,
+		table: tbl,
 	}
 }
 
 // IfNotExists sets "IF NOT EXISTS" clause.
 func (b *CreateTableStatement) IfNotExists() *CreateTableStatement {
+	if b.err != nil {
+		return b
+	}
 	b.ifNotExists = true
 	return b
-}
-
-// CreateIndex returns new "CREATE INDEX" statement. The table is Table object to create index.
-func CreateIndex(table Table) *CreateIndexStatement {
-	return &CreateIndexStatement{
-		table: table,
-	}
 }
 
 // ToSql generates query string, placeholder arguments, and error.
@@ -40,12 +51,8 @@ func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err er
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
-
-	if b.table == nil {
-		bldr.SetError(newError("table is nil."))
-		return
-	} else if _, ok := b.table.(*table); !ok {
-		bldr.SetError(newError("This table can not create."))
+	if b.err != nil {
+		bldr.SetError(b.err)
 		return
 	}
 
@@ -76,14 +83,37 @@ func (b *CreateTableStatement) ToSql() (query string, args []interface{}, err er
 	return
 }
 
+// CreateIndex returns new "CREATE INDEX" statement. The table is Table object to create index.
+func CreateIndex(tbl Table) *CreateIndexStatement {
+	if tbl == nil {
+		return &CreateIndexStatement{
+			err: newError("table is nil."),
+		}
+	}
+	if _, ok := tbl.(*table); !ok {
+		return &CreateIndexStatement{
+			err: newError("CreateTable can use only natural table."),
+		}
+	}
+	return &CreateIndexStatement{
+		table: tbl,
+	}
+}
+
 // IfNotExists sets "IF NOT EXISTS" clause.
 func (b *CreateIndexStatement) IfNotExists() *CreateIndexStatement {
+	if b.err != nil {
+		return b
+	}
 	b.ifNotExists = true
 	return b
 }
 
 // IfNotExists sets "IF NOT EXISTS" clause. If not set this, returns error on ToSql().
 func (b *CreateIndexStatement) Columns(columns ...Column) *CreateIndexStatement {
+	if b.err != nil {
+		return b
+	}
 	b.columns = columns
 	return b
 }
@@ -91,6 +121,9 @@ func (b *CreateIndexStatement) Columns(columns ...Column) *CreateIndexStatement 
 // Name sets name for index.
 // If not set this, auto generated name will be used.
 func (b *CreateIndexStatement) Name(name string) *CreateIndexStatement {
+	if b.err != nil {
+		return b
+	}
 	b.name = name
 	return b
 }
@@ -101,6 +134,10 @@ func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err er
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
+	if b.err != nil {
+		bldr.SetError(b.err)
+		return
+	}
 
 	bldr.Append("CREATE INDEX ")
 	if b.ifNotExists {
@@ -115,12 +152,7 @@ func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err er
 	}
 
 	bldr.Append(" ON ")
-	if b.table != nil {
-		bldr.AppendItem(b.table)
-	} else {
-		bldr.SetError(newError("table is nil."))
-		return
-	}
+	bldr.AppendItem(b.table)
 
 	if len(b.columns) != 0 {
 		bldr.Append(" ( ")
@@ -130,7 +162,6 @@ func (b *CreateIndexStatement) ToSql() (query string, args []interface{}, err er
 		bldr.SetError(newError("columns was not setted."))
 		return
 	}
-
 	return
 }
 

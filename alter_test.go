@@ -14,6 +14,14 @@ func TestAlterTable(t *testing.T) {
 		IntColumn("test1", nil),
 		IntColumn("test2", nil),
 	)
+	table2 := NewTable(
+		"TABLE_B",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+	)
+	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 
 	var cases = []statementTestCase{{
 		AlterTable(table1).
@@ -91,6 +99,16 @@ func TestAlterTable(t *testing.T) {
 		true,
 	}, {
 		AlterTable(table1.InnerJoin(table1, table1.C("id").Eq(table1.C("id")))).AddColumnAfter(IntColumn("test0", nil), table1.C("invalid")),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		AlterTable(nil).DropColumn(table1.C("invalid")),
+		``,
+		[]interface{}{},
+		true,
+	}, {
+		AlterTable(tableJoined).DropColumn(table1.C("id")),
 		``,
 		[]interface{}{},
 		true,

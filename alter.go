@@ -11,13 +11,16 @@ type AlterTableStatement struct {
 }
 
 func AlterTable(tbl Table) *AlterTableStatement {
+	if tbl == nil {
+		return &AlterTableStatement{
+			err: newError("table is nil."),
+		}
+	}
+
 	t, ok := tbl.(*table)
 	if !ok {
 		return &AlterTableStatement{
-			table:          t,
-			add_columns:    make([]*alterTableAddColumn, 0),
-			change_columns: make([]*alterTableChangeColumn, 0),
-			err:            newError("AlterTable can use only natural table."),
+			err: newError("AlterTable can use only natural table."),
 		}
 	}
 	return &AlterTableStatement{
@@ -28,11 +31,19 @@ func AlterTable(tbl Table) *AlterTableStatement {
 }
 
 func (b *AlterTableStatement) RenameTo(name string) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.rename_to = name
 	return b
 }
 
 func (b *AlterTableStatement) AddColumn(col ColumnConfig) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.add_columns = append(b.add_columns, &alterTableAddColumn{
 		table:  b.table,
 		column: col,
@@ -43,6 +54,10 @@ func (b *AlterTableStatement) AddColumn(col ColumnConfig) *AlterTableStatement {
 }
 
 func (b *AlterTableStatement) AddColumnAfter(col ColumnConfig, after Column) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.add_columns = append(b.add_columns, &alterTableAddColumn{
 		table:  b.table,
 		column: col,
@@ -53,6 +68,10 @@ func (b *AlterTableStatement) AddColumnAfter(col ColumnConfig, after Column) *Al
 }
 
 func (b *AlterTableStatement) AddColumnFirst(col ColumnConfig) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.add_columns = append(b.add_columns, &alterTableAddColumn{
 		table:  b.table,
 		column: col,
@@ -63,11 +82,19 @@ func (b *AlterTableStatement) AddColumnFirst(col ColumnConfig) *AlterTableStatem
 }
 
 func (b *AlterTableStatement) DropColumn(col Column) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.drop_columns = append(b.drop_columns, col)
 	return b
 }
 
 func (b *AlterTableStatement) ChangeColumn(old_column Column, new_column ColumnConfig) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.change_columns = append(b.change_columns, &alterTableChangeColumn{
 		table:      b.table,
 		old_column: old_column,
@@ -79,6 +106,10 @@ func (b *AlterTableStatement) ChangeColumn(old_column Column, new_column ColumnC
 }
 
 func (b *AlterTableStatement) ChangeColumnAfter(old_column Column, new_column ColumnConfig, after Column) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.change_columns = append(b.change_columns, &alterTableChangeColumn{
 		table:      b.table,
 		old_column: old_column,
@@ -90,6 +121,10 @@ func (b *AlterTableStatement) ChangeColumnAfter(old_column Column, new_column Co
 }
 
 func (b *AlterTableStatement) ChangeColumnFirst(old_column Column, new_column ColumnConfig) *AlterTableStatement {
+	if b.err != nil {
+		return b
+	}
+
 	b.change_columns = append(b.change_columns, &alterTableChangeColumn{
 		table:      b.table,
 		old_column: old_column,

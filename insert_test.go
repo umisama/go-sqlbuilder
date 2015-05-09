@@ -20,6 +20,14 @@ func TestInsert(t *testing.T) {
 		DateColumn("date", nil),
 		BytesColumn("bytes", nil),
 	)
+	table2 := NewTable(
+		"TABLE_B",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+	)
+	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 
 	var cases = []statementTestCase{{
 		Insert(table1).
@@ -57,8 +65,14 @@ func TestInsert(t *testing.T) {
 		[]interface{}{},
 		true,
 	}, {
-		// error if into is nil.
+		// error if value type is invalid.
 		Insert(table1).Columns(table1.C("str")).Values(1),
+		"",
+		[]interface{}{},
+		true,
+	}, {
+		// error if table is not natural.
+		Insert(tableJoined).Columns(table1.C("str")).Values(1),
 		"",
 		[]interface{}{},
 		true,

@@ -8,42 +8,64 @@ type UpdateStatement struct {
 	orderBy []serializable
 	limit   int
 	offset  int
+
+	err error
 }
 
 // Update returns new UPDATE statement. The table is Table object to update.
-func Update(table Table) *UpdateStatement {
+func Update(tbl Table) *UpdateStatement {
+	if tbl == nil {
+		return &UpdateStatement{
+			err: newError("table is nil."),
+		}
+	}
 	return &UpdateStatement{
-		table: table,
+		table: tbl,
 		set:   make([]serializable, 0),
 	}
 }
 
 // Set sets SETS clause like col=val.  Call many time for update multi columns.
 func (b *UpdateStatement) Set(col Column, val interface{}) *UpdateStatement {
+	if b.err != nil {
+		return b
+	}
 	b.set = append(b.set, newUpdateValue(col, val))
 	return b
 }
 
 // Where sets WHERE clause.  The cond is filter condition.
 func (b *UpdateStatement) Where(cond Condition) *UpdateStatement {
+	if b.err != nil {
+		return b
+	}
 	b.where = cond
 	return b
 }
 
 // Limit sets LIMIT clause.
 func (b *UpdateStatement) Limit(limit int) *UpdateStatement {
+	if b.err != nil {
+		return b
+	}
 	b.limit = limit
 	return b
 }
 
 // Limit sets OFFSET clause.
 func (b *UpdateStatement) Offset(offset int) *UpdateStatement {
+	if b.err != nil {
+		return b
+	}
 	b.offset = offset
 	return b
 }
 
 // OrderBy sets "ORDER BY" clause. Use descending order if the desc is true, by the columns.
 func (b *UpdateStatement) OrderBy(desc bool, columns ...Column) *UpdateStatement {
+	if b.err != nil {
+		return b
+	}
 	if b.orderBy == nil {
 		b.orderBy = make([]serializable, 0)
 	}
@@ -60,14 +82,14 @@ func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) 
 	defer func() {
 		query, args, err = bldr.Query(), bldr.Args(), bldr.Err()
 	}()
+	if b.err != nil {
+		bldr.SetError(b.err)
+		return
+	}
 
 	// UPDATE TABLE SET (COLUMN=VALUE)
 	bldr.Append("UPDATE ")
-	if b.table != nil {
-		bldr.AppendItem(b.table)
-	} else {
-		bldr.SetError(newError("table is nil"))
-	}
+	bldr.AppendItem(b.table)
 
 	bldr.Append(" SET ")
 	if len(b.set) != 0 {
@@ -99,7 +121,6 @@ func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) 
 		bldr.Append(" OFFSET ")
 		bldr.AppendValue(b.offset)
 	}
-
 	return
 }
 
