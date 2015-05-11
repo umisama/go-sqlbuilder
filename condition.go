@@ -3,6 +3,8 @@ package sqlbuilder
 // Condition represents a condition for WHERE clause and other.
 type Condition interface {
 	serializable
+
+	columns() []Column
 }
 
 type connectCondition struct {
@@ -28,6 +30,14 @@ func (c *connectCondition) serialize(bldr *builder) {
 		}
 	}
 	return
+}
+
+func (c *connectCondition) columns() []Column {
+	list := make([]Column, 0)
+	for _, cond := range c.conds {
+		list = append(list, cond.columns()...)
+	}
+	return list
 }
 
 // And creates a combined condition with "AND" operator.
@@ -118,6 +128,17 @@ func (c *binaryOperationCondition) serialize(bldr *builder) {
 	return
 }
 
+func (c *binaryOperationCondition) columns() []Column {
+	list := make([]Column, 0)
+	if col, ok := c.left.(Column); ok {
+		list = append(list, col)
+	}
+	if col, ok := c.right.(Column); ok {
+		list = append(list, col)
+	}
+	return list
+}
+
 type betweenCondition struct {
 	left   serializable
 	lower  serializable
@@ -131,6 +152,20 @@ func (c *betweenCondition) serialize(bldr *builder) {
 	bldr.Append(" AND ")
 	bldr.AppendItem(c.higher)
 	return
+}
+
+func (c *betweenCondition) columns() []Column {
+	list := make([]Column, 0)
+	if col, ok := c.left.(Column); ok {
+		list = append(list, col)
+	}
+	if col, ok := c.lower.(Column); ok {
+		list = append(list, col)
+	}
+	if col, ok := c.higher.(Column); ok {
+		list = append(list, col)
+	}
+	return list
 }
 
 type inCondition struct {
@@ -158,4 +193,17 @@ func (c *inCondition) serialize(bldr *builder) {
 	bldr.Append(" IN ( ")
 	bldr.AppendItems(c.in, ", ")
 	bldr.Append(" )")
+}
+
+func (c *inCondition) columns() []Column {
+	list := make([]Column, 0)
+	if col, ok := c.left.(Column); ok {
+		list = append(list, col)
+	}
+	for _, in := range c.in {
+		if col, ok := in.(Column); ok {
+			list = append(list, col)
+		}
+	}
+	return list
 }

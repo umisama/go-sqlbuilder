@@ -33,6 +33,13 @@ func (b *SelectStatement) Columns(columns ...Column) *SelectStatement {
 	if b.err != nil {
 		return b
 	}
+	for _, col := range columns {
+		if !b.from.hasColumn(col) {
+			b.err = newError("column not found in FROM")
+			return b
+		}
+	}
+
 	b.columns = selectColumnList(columns)
 	return b
 }
@@ -42,6 +49,13 @@ func (b *SelectStatement) Where(cond Condition) *SelectStatement {
 	if b.err != nil {
 		return b
 	}
+	for _, col := range cond.columns() {
+		if !b.from.hasColumn(col) {
+			b.err = newError("column not found in FROM")
+			return b
+		}
+	}
+
 	b.where = cond
 	return b
 }
@@ -259,6 +273,49 @@ func (m *subquery) RightOuterJoin(Table, Condition) Table {
 func (m *subquery) FullOuterJoin(Table, Condition) Table {
 	m.err = newError("Subquery can not join")
 	return m
+}
+
+func (m *subquery) hasColumn(trg Column) bool {
+	if cimpl, ok := trg.(*columnImpl); ok {
+		if trg == Star {
+			return true
+		}
+		if cimpl.table != m {
+			return false
+		}
+		for _, col := range m.stat.columns {
+			if col.column_name() == trg.column_name() {
+				return true
+			}
+		}
+		return false
+	}
+	if acol, ok := trg.(*aliasColumn); ok {
+		if acol.column.(*columnImpl).table != m {
+			return false
+		}
+		for _, col := range m.stat.columns {
+			if col.column_name() == trg.column_name() {
+				return true
+			}
+		}
+		return false
+	}
+	if sqlfn, ok := trg.(*sqlFuncImpl); ok {
+		for _, fncol := range sqlfn.columns() {
+			find := false
+			for _, col := range m.stat.columns {
+				if col.column_name() == fncol.column_name() {
+					find = true
+				}
+			}
+			if !find {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 type selectColumnList []Column

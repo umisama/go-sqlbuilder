@@ -61,6 +61,8 @@ type Table interface {
 	// FullOuterJoin returns a joined table use with "FULL OUTER JOIN" clause.
 	// The joined table can be handled in same way as single table.
 	FullOuterJoin(Table, Condition) Table
+
+	hasColumn(column Column) bool
 }
 
 // NewTable returns a new table named by the name.  Specify table columns by the column_config.
@@ -281,6 +283,43 @@ func (m *table) FullOuterJoin(right Table, on Condition) Table {
 	}
 }
 
+func (m *table) hasColumn(trg Column) bool {
+	if cimpl, ok := trg.(*columnImpl); ok {
+		if trg == Star {
+			return true
+		}
+		for _, col := range m.columns {
+			if col == cimpl {
+				return true
+			}
+		}
+		return false
+	}
+	if acol, ok := trg.(*aliasColumn); ok {
+		for _, col := range m.columns {
+			if col == acol.column {
+				return true
+			}
+		}
+		return false
+	}
+	if sqlfn, ok := trg.(*sqlFuncImpl); ok {
+		for _, fncol := range sqlfn.columns() {
+			find := false
+			for _, col := range m.columns {
+				if col == fncol {
+					find = true
+				}
+			}
+			if !find {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
+
 func (m *joinTable) C(name string) Column {
 	l_col := m.left.C(name)
 	r_col := m.right.C(name)
@@ -364,4 +403,14 @@ func (m *joinTable) serialize(bldr *builder) {
 	bldr.Append(" ON ")
 	bldr.AppendItem(m.on)
 	return
+}
+
+func (m *joinTable) hasColumn(trg Column) bool {
+	if m.left.hasColumn(trg) {
+		return true
+	}
+	if m.right.hasColumn(trg) {
+		return true
+	}
+	return false
 }

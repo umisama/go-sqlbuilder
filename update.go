@@ -30,6 +30,10 @@ func (b *UpdateStatement) Set(col Column, val interface{}) *UpdateStatement {
 	if b.err != nil {
 		return b
 	}
+	if !b.table.hasColumn(col) {
+		b.err = newError("column not found in FROM")
+		return b
+	}
 	b.set = append(b.set, newUpdateValue(col, val))
 	return b
 }

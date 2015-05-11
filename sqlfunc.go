@@ -3,22 +3,34 @@ package sqlbuilder
 // SqlFunc represents function on SQL(ex:count(*)).  This can be use in the same way as Column.
 type SqlFunc interface {
 	Column
+
+	columns() []Column
+}
+
+type sqlFuncColumnList []Column
+
+func (l sqlFuncColumnList) serialize(bldr *builder) {
+	first := true
+	for _, part := range l {
+		if first {
+			first = false
+		} else {
+			bldr.Append(" , ")
+		}
+		part.serialize(bldr)
+	}
 }
 
 type sqlFuncImpl struct {
-	name    string
-	columns []serializable
+	name string
+	args sqlFuncColumnList
 }
 
 // Func returns new SQL function.  The name is function name, and the args is arguments of function
 func Func(name string, args ...Column) SqlFunc {
-	cl := make([]serializable, 0, len(args))
-	for _, c := range args {
-		cl = append(cl, c)
-	}
 	return &sqlFuncImpl{
-		name:    name,
-		columns: cl,
+		name: name,
+		args: args,
 	}
 }
 
@@ -48,7 +60,7 @@ func (m *sqlFuncImpl) acceptType(interface{}) bool {
 func (m *sqlFuncImpl) serialize(bldr *builder) {
 	bldr.Append(m.name)
 	bldr.Append("(")
-	bldr.AppendItems(m.columns, ", ")
+	bldr.AppendItem(m.args)
 	bldr.Append(")")
 }
 
@@ -86,4 +98,8 @@ func (left *sqlFuncImpl) Between(lower, higher interface{}) Condition {
 
 func (left *sqlFuncImpl) In(vals ...interface{}) Condition {
 	return newInCondition(left, vals...)
+}
+
+func (m *sqlFuncImpl) columns() []Column {
+	return m.args
 }

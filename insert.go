@@ -34,6 +34,12 @@ func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
 	if b.err != nil {
 		return b
 	}
+	for _, col := range columns {
+		if !b.into.hasColumn(col) {
+			b.err = newError("column not found in table")
+			return b
+		}
+	}
 	b.columns = ColumnList(columns)
 	return b
 }
@@ -55,6 +61,10 @@ func (b *InsertStatement) Values(values ...interface{}) *InsertStatement {
 // Set cannot be called with Columns() or Values() in a statement.
 func (b *InsertStatement) Set(column Column, value interface{}) *InsertStatement {
 	if b.err != nil {
+		return b
+	}
+	if !b.into.hasColumn(column) {
+		b.err = newError("column not found in FROM")
 		return b
 	}
 	b.columns = append(b.columns, column)

@@ -30,6 +30,12 @@ func (b *DeleteStatement) Where(cond Condition) *DeleteStatement {
 	if b.err != nil {
 		return b
 	}
+	for _, col := range cond.columns() {
+		if !b.from.hasColumn(col) {
+			b.err = newError("column not found in FROM")
+			return b
+		}
+	}
 	b.where = cond
 	return b
 }

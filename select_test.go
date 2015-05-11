@@ -124,10 +124,10 @@ func TestSubquery(t *testing.T) {
 		Where(subquery.C("id").Eq(1)).ToSql()
 
 	if `SELECT "SQ1"."id" FROM ( SELECT "TABLE_A"."id" FROM "TABLE_A" ) AS SQ1 WHERE "SQ1"."id"=?;` != query {
-		t.Error("failed \ngot %s", query)
+		t.Errorf("failed \ngot %s", query)
 	}
 	if !reflect.DeepEqual([]interface{}{int64(1)}, attrs) {
-		t.Error("failed \ngot %#v", attrs)
+		t.Errorf("failed \ngot %#v", attrs)
 	}
 	if err != nil {
 		t.Error("failed \ngot %#v", err.Error())
