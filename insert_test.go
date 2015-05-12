@@ -30,52 +30,47 @@ func TestInsert(t *testing.T) {
 	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 
 	var cases = []statementTestCase{{
-		Insert(table1).
+		stmt: Insert(table1).
 			Columns(table1.C("str"), table1.C("bool"), table1.C("float"), table1.C("date"), table1.C("bytes")).
 			Values("hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
-		`INSERT INTO "TABLE_A" ( "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ? );`,
-		[]interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
-		false,
+		query:  `INSERT INTO "TABLE_A" ( "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ? );`,
+		args:   []interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
+		errmsg: "",
 	}, {
-		Insert(table1).
+		stmt: Insert(table1).
 			Set(table1.C("str"), "hoge").
 			Set(table1.C("bool"), true).
 			Set(table1.C("float"), 0.1).
 			Set(table1.C("date"), time.Unix(0, 0).UTC()).
 			Set(table1.C("bytes"), []byte{0x01}),
-		`INSERT INTO "TABLE_A" ( "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ? );`,
-		[]interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
-		false,
+		query:  `INSERT INTO "TABLE_A" ( "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ? );`,
+		args:   []interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
+		errmsg: "",
 	}, {
-		// all columns if Columns() was not setted.
-		Insert(table1).Values(1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
-		`INSERT INTO "TABLE_A" ( "id", "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ?, ? );`,
-		[]interface{}{int64(1), "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
-		false,
+		stmt:   Insert(table1).Values(1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
+		query:  `INSERT INTO "TABLE_A" ( "id", "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ?, ? );`,
+		args:   []interface{}{int64(1), "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
+		errmsg: "",
 	}, {
-		// error if column's length and value's length are not eaual.
-		Insert(table1).Columns(table1.C("id")).Values(1, 2, 3),
-		"",
-		[]interface{}{},
-		true,
+		stmt:   Insert(table1).Columns(table1.C("id")).Values(1, 2, 3),
+		query:  "",
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: 1 values needed, but got 3.",
 	}, {
-		// error if into is nil.
-		Insert(nil).Columns(table1.C("id")).Values(1),
-		"",
-		[]interface{}{},
-		true,
+		stmt:   Insert(nil).Columns(table1.C("id")).Values(1),
+		query:  "",
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: table is nil.",
 	}, {
-		// error if value type is invalid.
-		Insert(table1).Columns(table1.C("str")).Values(1),
-		"",
-		[]interface{}{},
-		true,
+		stmt:   Insert(table1).Columns(table1.C("str")).Values(1),
+		query:  "",
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: string column not accept int.",
 	}, {
-		// error if table is not natural.
-		Insert(tableJoined).Columns(table1.C("str")).Values(1),
-		"",
-		[]interface{}{},
-		true,
+		stmt:   Insert(tableJoined).Columns(table1.C("str")).Values(1),
+		query:  "",
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: table is not natural table.",
 	}}
 
 	for num, c := range cases {

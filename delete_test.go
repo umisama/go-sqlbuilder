@@ -24,20 +24,20 @@ func TestDelete(t *testing.T) {
 	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 
 	var cases = []statementTestCase{{
-		Delete(table1).Where(table1.C("id").Eq(1)),
-		`DELETE FROM "TABLE_A" WHERE "TABLE_A"."id"=?;`,
-		[]interface{}{int64(1)},
-		false,
+		stmt:   Delete(table1).Where(table1.C("id").Eq(1)),
+		query:  `DELETE FROM "TABLE_A" WHERE "TABLE_A"."id"=?;`,
+		args:   []interface{}{int64(1)},
+		errmsg: "",
 	}, {
-		Delete(nil).Where(table1.C("id").Eq(1)),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   Delete(nil).Where(table1.C("id").Eq(1)),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: from is nil.",
 	}, {
-		Delete(tableJoined).Where(table1.C("id").Eq(1)),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   Delete(tableJoined).Where(table1.C("id").Eq(1)),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: CreateTable can use only natural table.",
 	}}
 
 	for num, c := range cases {

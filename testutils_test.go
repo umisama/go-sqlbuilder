@@ -5,17 +5,20 @@ import (
 )
 
 type statementTestCase struct {
-	stmt  Statement
-	query string
-	args  []interface{}
-	err   bool
+	stmt   Statement
+	query  string
+	args   []interface{}
+	errmsg string
 }
 
 func (testCase statementTestCase) Run() (message string, args []interface{}, ok bool) {
 	query, args, err := testCase.stmt.ToSql()
-	if testCase.err {
+	if len(testCase.errmsg) != 0 {
 		if err == nil {
 			return "error: expect returns error but got nil.", []interface{}{}, false
+		}
+		if err.Error() != testCase.errmsg {
+			return "error: expect error message is '%s' but got '%s'.", []interface{}{err.Error(), testCase.errmsg}, false
 		}
 	} else {
 		if err != nil {
@@ -32,18 +35,21 @@ func (testCase statementTestCase) Run() (message string, args []interface{}, ok 
 }
 
 type conditionTestCase struct {
-	cond  Condition
-	query string
-	args  []interface{}
-	err   error
+	cond   Condition
+	query  string
+	args   []interface{}
+	errmsg string
 }
 
 func (testCase conditionTestCase) Run() (message string, args []interface{}, ok bool) {
 	bldr := newBuilder()
 	testCase.cond.serialize(bldr)
-	if testCase.err != nil {
+	if len(testCase.errmsg) != 0 {
 		if bldr.err == nil {
 			return "error: expect returns error but got nil.", []interface{}{}, false
+		}
+		if bldr.err.Error() != testCase.errmsg {
+			return "error: expect error message is '%s' but got '%s'.", []interface{}{bldr.err.Error(), testCase.errmsg}, false
 		}
 	} else {
 		if bldr.err != nil {

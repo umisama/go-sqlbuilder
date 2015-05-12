@@ -36,7 +36,7 @@ func (b *InsertStatement) Columns(columns ...Column) *InsertStatement {
 	}
 	for _, col := range columns {
 		if !b.into.hasColumn(col) {
-			b.err = newError("column not found in table")
+			b.err = newError("column not found in table.")
 			return b
 		}
 	}
@@ -64,7 +64,7 @@ func (b *InsertStatement) Set(column Column, value interface{}) *InsertStatement
 		return b
 	}
 	if !b.into.hasColumn(column) {
-		b.err = newError("column not found in FROM")
+		b.err = newError("column not found in FROM.")
 		return b
 	}
 	b.columns = append(b.columns, column)
@@ -100,12 +100,12 @@ func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) 
 
 	// VALUES
 	if len(b.columns) != len(b.values) {
-		bldr.SetError(newError("%d values needed, but got %d", len(b.columns), len(b.values)))
+		bldr.SetError(newError("%d values needed, but got %d.", len(b.columns), len(b.values)))
 		return
 	}
 	for i := range b.columns {
 		if !b.columns[i].acceptType(b.values[i]) {
-			bldr.SetError(newError("%s column not accept %T",
+			bldr.SetError(newError("%s column not accept %T.",
 				b.columns[i].config().Type().String(),
 				b.values[i].Raw()))
 			return

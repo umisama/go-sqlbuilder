@@ -26,7 +26,7 @@ func TestSelect(t *testing.T) {
 	acol_id := table1.C("id").As("tbl1id")
 
 	var cases = []statementTestCase{{
-		Select(table1).
+		stmt: Select(table1).
 			Columns(table1.C("test1"), table1.C("test2")).
 			Where(
 			And(
@@ -39,64 +39,61 @@ func TestSelect(t *testing.T) {
 			Having(table1.C("id").Eq(1)).
 			Limit(10).
 			Offset(20),
-		`SELECT DISTINCT "TABLE_A"."test1", "TABLE_A"."test2" ` +
+		query: `SELECT DISTINCT "TABLE_A"."test1", "TABLE_A"."test2" ` +
 			`FROM "TABLE_A" WHERE "TABLE_A"."id"=? AND "TABLE_A"."test1"=? ` +
 			`GROUP BY "TABLE_A"."id" HAVING "TABLE_A"."id"=? ORDER BY "TABLE_A"."id" ASC ` +
 			`LIMIT ? OFFSET ?;`,
-		[]interface{}{int64(1), int64(2), int64(1), 10, 20},
-		false,
+		args:   []interface{}{int64(1), int64(2), int64(1), 10, 20},
+		errmsg: "",
 	}, {
-		Select(table1).
+		stmt: Select(table1).
 			Columns(table1.C("test1"), table1.C("test2")),
-		`SELECT "TABLE_A"."test1", "TABLE_A"."test2" FROM "TABLE_A";`,
-		[]interface{}{},
-		false,
+		query:  `SELECT "TABLE_A"."test1", "TABLE_A"."test2" FROM "TABLE_A";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		Select(table1).
-			Columns(acol_id).
+		stmt: Select(table1).Columns(acol_id).
 			Where(acol_id.Eq(1)),
-		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=?;`,
-		[]interface{}{int64(1)},
-		false,
+		query:  `SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=?;`,
+		args:   []interface{}{int64(1)},
+		errmsg: "",
 	}, {
-		Select(table1).
-			Columns(acol_id).
+		stmt: Select(table1).Columns(acol_id).
 			Where(acol_id.Eq(1)).
 			OrderBy(false, table1.C("test1")).
 			OrderBy(true, table1.C("test2")),
-		`SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=? ORDER BY "TABLE_A"."test1" ASC, "TABLE_A"."test2" DESC;`,
-		[]interface{}{int64(1)},
-		false,
+		query:  `SELECT "TABLE_A"."id" AS "tbl1id" FROM "TABLE_A" WHERE "tbl1id"=? ORDER BY "TABLE_A"."test1" ASC, "TABLE_A"."test2" DESC;`,
+		args:   []interface{}{int64(1)},
+		errmsg: "",
 	}, {
-		Select(table1).
+		stmt:   Select(table1).Columns(Star),
+		query:  `SELECT * FROM "TABLE_A";`,
+		args:   []interface{}{},
+		errmsg: "",
+	}, {
+		stmt:   Select(table1),
+		query:  `SELECT * FROM "TABLE_A";`,
+		args:   []interface{}{},
+		errmsg: "",
+	}, {
+		stmt: Select(tableJoined).
 			Columns(Star),
-		`SELECT * FROM "TABLE_A";`,
-		[]interface{}{},
-		false,
+		query:  `SELECT * FROM "TABLE_A" INNER JOIN "TABLE_B" ON "TABLE_A"."test1"="TABLE_B"."id";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		Select(table1),
-		`SELECT * FROM "TABLE_A";`,
-		[]interface{}{},
-		false,
-	}, {
-		Select(tableJoined).
-			Columns(Star),
-		`SELECT * FROM "TABLE_A" INNER JOIN "TABLE_B" ON "TABLE_A"."test1"="TABLE_B"."id";`,
-		[]interface{}{},
-		false,
-	}, {
-		Select(nil).
+		stmt: Select(nil).
 			Columns(table1.C("test1"), table1.C("test2")),
-		``,
-		[]interface{}{},
-		true,
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: table is nil.",
 	}, {
-		Select(table1).
+		stmt: Select(table1).
 			Columns(table1.C("test1"), table1.C("test2")).
 			Having(table1.C("id").Eq(1)),
-		``,
-		[]interface{}{},
-		true,
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: GROUP BY clause is not found.",
 	}}
 
 	for num, c := range cases {

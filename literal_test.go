@@ -9,38 +9,84 @@ import (
 func TestLiteralConvert(t *testing.T) {
 	str := "makise-kurisu"
 	var cases = []struct {
-		in  literal
-		out interface{}
-		err bool
+		lit    literal
+		out    interface{}
+		errmes string
 	}{
-		{toLiteral(int(10)), int64(10), false},
-		{toLiteral(int64(10)), int64(10), false},
-		{toLiteral(uint(10)), int64(10), false},
-		{toLiteral(uint64(10)), int64(10), false},
-		{toLiteral(float32(10)), float64(10), false},
-		{toLiteral(float64(10)), float64(10), false},
-		{toLiteral(bool(true)), bool(true), false},
-		{toLiteral([]byte{0x11}), []byte{0x11}, false},
-		{toLiteral(string("makise-kurisu")), string("makise-kurisu"), false},
-		{toLiteral(&str), str, false},
-		{toLiteral((*string)(nil)), nil, false},
-		{toLiteral(time.Unix(0, 0)), time.Unix(0, 0), false},
-		{toLiteral(nil), nil, false},
-		{toLiteral(complex(0, 0)), nil, true},
-	}
+		{
+			lit:    toLiteral(int(10)),
+			out:    int64(10),
+			errmes: "",
+		}, {
+			lit:    toLiteral(int64(10)),
+			out:    int64(10),
+			errmes: "",
+		}, {
+			lit:    toLiteral(uint(10)),
+			out:    int64(10),
+			errmes: "",
+		}, {
+			lit:    toLiteral(uint64(10)),
+			out:    int64(10),
+			errmes: "",
+		}, {
+			lit:    toLiteral(float32(10)),
+			out:    float64(10),
+			errmes: "",
+		}, {
+			lit:    toLiteral(float64(10)),
+			out:    float64(10),
+			errmes: "",
+		}, {
+			lit:    toLiteral(bool(true)),
+			out:    bool(true),
+			errmes: "",
+		}, {
+			lit:    toLiteral([]byte{0x11}),
+			out:    []byte{0x11},
+			errmes: "",
+		}, {
+			lit:    toLiteral(string("makise-kurisu")),
+			out:    string("makise-kurisu"),
+			errmes: "",
+		}, {
+			lit:    toLiteral(&str),
+			out:    str,
+			errmes: "",
+		}, {
+			lit:    toLiteral((*string)(nil)),
+			out:    nil,
+			errmes: "",
+		}, {
+			lit:    toLiteral(time.Unix(0, 0)),
+			out:    time.Unix(0, 0),
+			errmes: "",
+		}, {
+			lit:    toLiteral(nil),
+			out:    nil,
+			errmes: "",
+		}, {
+			lit:    toLiteral(complex(0, 0)),
+			out:    nil,
+			errmes: "sqlbuilder: got complex128 type, but literal is not supporting this.",
+		}}
 
 	for num, c := range cases {
-		val, err := c.in.(*literalImpl).converted()
+		val, err := c.lit.(*literalImpl).converted()
 		if !reflect.DeepEqual(c.out, val) {
-			t.Error("failed on %d", num)
+			t.Errorf("failed on %d", num)
 		}
-		if c.err {
+		if len(c.errmes) != 0 {
 			if err == nil {
-				t.Error("failed on %d", num)
+				t.Errorf("failed on %d", num)
+			}
+			if err.Error() != c.errmes {
+				t.Errorf("failed on %d", num)
+				panic(err.Error())
 			}
 		} else {
 			if err != nil {
-				t.Error("failed on %d", num)
+				t.Errorf("failed on %d", num)
 			}
 		}
 	}
@@ -48,26 +94,62 @@ func TestLiteralConvert(t *testing.T) {
 
 func TestLiteralString(t *testing.T) {
 	var cases = []struct {
-		in  literal
-		out string
-		err bool
+		lit    literal
+		out    string
+		errmes string
 	}{
-		{toLiteral(int(10)), "10", false},
-		{toLiteral(int64(10)), "10", false},
-		{toLiteral(uint(10)), "10", false},
-		{toLiteral(uint64(10)), "10", false},
-		{toLiteral(float32(10)), "10.0000000000", false},
-		{toLiteral(float64(10)), "10.0000000000", false},
-		{toLiteral(bool(true)), "true", false},
-		{toLiteral([]byte{0x11}), string([]byte{0x11}), false},
-		{toLiteral(string("shibuya-rin")), "shibuya-rin", false},
-		{toLiteral(time.Unix(0, 0).UTC()), "1970-01-01 00:00:00", false},
-		{toLiteral(nil), "NULL", false},
-		{toLiteral(complex(0, 0)), "", true},
-	}
+		{
+			lit:    toLiteral(int(10)),
+			out:    "10",
+			errmes: "",
+		}, {
+			lit:    toLiteral(int64(10)),
+			out:    "10",
+			errmes: "",
+		}, {
+			lit:    toLiteral(uint(10)),
+			out:    "10",
+			errmes: "",
+		}, {
+			lit:    toLiteral(uint64(10)),
+			out:    "10",
+			errmes: "",
+		}, {
+			lit:    toLiteral(float32(10)),
+			out:    "10.0000000000",
+			errmes: "",
+		}, {
+			lit:    toLiteral(float64(10)),
+			out:    "10.0000000000",
+			errmes: "",
+		}, {
+			lit:    toLiteral(bool(true)),
+			out:    "true",
+			errmes: "",
+		}, {
+			lit:    toLiteral([]byte{0x11}),
+			out:    string([]byte{0x11}),
+			errmes: "",
+		}, {
+			lit:    toLiteral(string("shibuya-rin")),
+			out:    "shibuya-rin",
+			errmes: "",
+		}, {
+			lit:    toLiteral(time.Unix(0, 0).UTC()),
+			out:    "1970-01-01 00:00:00",
+			errmes: "",
+		}, {
+			lit:    toLiteral(nil),
+			out:    "NULL",
+			errmes: "",
+		}, {
+			lit:    toLiteral(complex(0, 0)),
+			out:    "",
+			errmes: "aaa",
+		}}
 
 	for num, c := range cases {
-		val := c.in.(*literalImpl).string()
+		val := c.lit.(*literalImpl).string()
 		if c.out != val {
 			t.Error("failed on %d", num)
 		}

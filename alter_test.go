@@ -24,94 +24,89 @@ func TestAlterTable(t *testing.T) {
 	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 
 	var cases = []statementTestCase{{
-		AlterTable(table1).
+		stmt: AlterTable(table1).
 			RenameTo("TABLE_AAA").
 			AddColumn(IntColumn("test3", nil)).
 			AddColumn(IntColumn("test4", nil)).
 			ChangeColumn(table1.C("test1"), IntColumn("test1a", nil)).
 			DropColumn(table1.C("test1")),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER, ADD COLUMN "test4" INTEGER, CHANGE COLUMN "test1" "test1a" INTEGER, DROP COLUMN "test1", RENAME TO "TABLE_AAA";`,
-		[]interface{}{},
-		false,
+		query:  `ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER, ADD COLUMN "test4" INTEGER, CHANGE COLUMN "test1" "test1a" INTEGER, DROP COLUMN "test1", RENAME TO "TABLE_AAA";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).RenameTo("TABLE_AAA"),
-		`ALTER TABLE "TABLE_A" RENAME TO "TABLE_AAA";`,
-		[]interface{}{},
-		false,
+		stmt:   AlterTable(table1).RenameTo("TABLE_AAA"),
+		query:  `ALTER TABLE "TABLE_A" RENAME TO "TABLE_AAA";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).AddColumn(IntColumn("test3", &ColumnOption{
+		stmt: AlterTable(table1).AddColumn(IntColumn("test3", &ColumnOption{
 			Unique: true,
 		})),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER UNIQUE;`,
-		[]interface{}{},
-		false,
+		query:  `ALTER TABLE "TABLE_A" ADD COLUMN "test3" INTEGER UNIQUE;`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).AddColumnAfter(IntColumn("test0", nil), table1.C("id")),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER AFTER "id";`,
-		[]interface{}{},
-		false,
+		stmt:   AlterTable(table1).AddColumnAfter(IntColumn("test0", nil), table1.C("id")),
+		query:  `ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER AFTER "id";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).AddColumnFirst(IntColumn("test0", nil)),
-		`ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER FIRST;`,
-		[]interface{}{},
-		false,
+		stmt:   AlterTable(table1).AddColumnFirst(IntColumn("test0", nil)),
+		query:  `ALTER TABLE "TABLE_A" ADD COLUMN "test0" INTEGER FIRST;`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).ChangeColumn(table1.C("test1"), IntColumn("test1a", &ColumnOption{
+		stmt: AlterTable(table1).ChangeColumn(table1.C("test1"), IntColumn("test1a", &ColumnOption{
 			Unique: true,
 		})),
-		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER UNIQUE;`,
-		[]interface{}{},
-		false,
+		query:  `ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER UNIQUE;`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).ChangeColumnFirst(table1.C("test1"), IntColumn("test1a", nil)),
-		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER FIRST;`,
-		[]interface{}{},
-		false,
+		stmt:   AlterTable(table1).ChangeColumnFirst(table1.C("test1"), IntColumn("test1a", nil)),
+		query:  `ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER FIRST;`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("test2")),
-		`ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER AFTER "test2";`,
-		[]interface{}{},
-		false,
+		stmt:   AlterTable(table1).ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("test2")),
+		query:  `ALTER TABLE "TABLE_A" CHANGE COLUMN "test1" "test1a" INTEGER AFTER "test2";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).DropColumn(table1.C("test1")),
-		`ALTER TABLE "TABLE_A" DROP COLUMN "test1";`,
-		[]interface{}{},
-		false,
+		stmt:   AlterTable(table1).DropColumn(table1.C("test1")),
+		query:  `ALTER TABLE "TABLE_A" DROP COLUMN "test1";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		AlterTable(table1).DropColumn(table1.C("invalid")),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   AlterTable(table1).DropColumn(table1.C("invalid")),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: column TABLE_A.invalid was not found.",
 	}, {
-		AlterTable(table1).ChangeColumnAfter(table1.C("invalid"), IntColumn("test1a", nil), table1.C("test2")),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   AlterTable(table1).ChangeColumnAfter(table1.C("invalid"), IntColumn("test1a", nil), table1.C("test2")),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: column TABLE_A.invalid was not found.",
 	}, {
-		AlterTable(table1).ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("invalid")),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   AlterTable(table1).ChangeColumnAfter(table1.C("test1"), IntColumn("test1a", nil), table1.C("invalid")),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: column TABLE_A.invalid was not found.",
 	}, {
-		AlterTable(table1).AddColumnAfter(IntColumn("test0", nil), table1.C("invalid")),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   AlterTable(table1).AddColumnAfter(IntColumn("test0", nil), table1.C("invalid")),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: column TABLE_A.invalid was not found.",
 	}, {
-		AlterTable(table1.InnerJoin(table1, table1.C("id").Eq(table1.C("id")))).AddColumnAfter(IntColumn("test0", nil), table1.C("invalid")),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   AlterTable(nil).DropColumn(table1.C("invalid")),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: table is nil.",
 	}, {
-		AlterTable(nil).DropColumn(table1.C("invalid")),
-		``,
-		[]interface{}{},
-		true,
-	}, {
-		AlterTable(tableJoined).DropColumn(table1.C("id")),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   AlterTable(tableJoined).DropColumn(table1.C("id")),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: AlterTable can use only natural table.",
 	}}
 
 	for num, c := range cases {

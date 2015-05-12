@@ -31,7 +31,7 @@ func (b *UpdateStatement) Set(col Column, val interface{}) *UpdateStatement {
 		return b
 	}
 	if !b.table.hasColumn(col) {
-		b.err = newError("column not found in FROM")
+		b.err = newError("column not found in FROM.")
 		return b
 	}
 	b.set = append(b.set, newUpdateValue(col, val))
@@ -99,7 +99,7 @@ func (b *UpdateStatement) ToSql() (query string, args []interface{}, err error) 
 	if len(b.set) != 0 {
 		bldr.AppendItems(b.set, ", ")
 	} else {
-		bldr.SetError(newError("length of sets is 0"))
+		bldr.SetError(newError("length of sets is 0."))
 	}
 
 	// WHERE
@@ -142,7 +142,7 @@ func newUpdateValue(col Column, val interface{}) updateValue {
 
 func (m updateValue) serialize(bldr *builder) {
 	if !m.col.acceptType(m.val) {
-		bldr.SetError(newError("%s column not accept %T",
+		bldr.SetError(newError("%s column not accept %T.",
 			m.col.config().Type().String(),
 			m.val.Raw(),
 		))

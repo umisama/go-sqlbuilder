@@ -69,7 +69,7 @@ type Table interface {
 // Panic if column is empty.
 func NewTable(name string, option *TableOption, column_configs ...ColumnConfig) Table {
 	if len(column_configs) == 0 {
-		panic(newError("column is needed"))
+		panic(newError("column is needed."))
 	}
 	if option == nil {
 		option = &TableOption{}
@@ -136,7 +136,7 @@ func (m *table) AddColumnAfter(cc ColumnConfig, after Column) error {
 			return m.addColumn(cc, i+1)
 		}
 	}
-	return newError("Column not found")
+	return newError("column not found.")
 }
 
 func (m *table) ChangeColumn(trg Column, cc ColumnConfig) error {
@@ -153,7 +153,7 @@ func (m *table) ChangeColumn(trg Column, cc ColumnConfig) error {
 			return nil
 		}
 	}
-	return newError("Column not found")
+	return newError("column not found.")
 }
 
 func (m *table) ChangeColumnFirst(trg Column, cc ColumnConfig) error {
@@ -170,7 +170,7 @@ func (m *table) ChangeColumnFirst(trg Column, cc ColumnConfig) error {
 			return nil
 		}
 	}
-	return newError("Column not found")
+	return newError("column not found.")
 }
 
 func (m *table) ChangeColumnAfter(trg Column, cc ColumnConfig, after Column) error {
@@ -189,7 +189,7 @@ func (m *table) ChangeColumnAfter(trg Column, cc ColumnConfig, after Column) err
 		}
 	}
 	if !found {
-		return newError("Column not found")
+		return newError("column not found.")
 	}
 	for i := range m.columns {
 		if m.columns[i] == after {
@@ -202,12 +202,12 @@ func (m *table) ChangeColumnAfter(trg Column, cc ColumnConfig, after Column) err
 		}
 	}
 	m.columns = backup
-	return newError("Column not found")
+	return newError("column not found.")
 }
 
 func (m *table) addColumn(cc ColumnConfig, pos int) error {
 	if len(m.columns) < pos || pos < 0 {
-		return newError("Invalid position")
+		return newError("Invalid position.")
 	}
 
 	var (
@@ -228,12 +228,12 @@ func (m *table) DropColumn(col Column) error {
 			return m.dropColumn(i)
 		}
 	}
-	return newError("Column not found")
+	return newError("column not found.")
 }
 
 func (m *table) dropColumn(pos int) error {
 	if len(m.columns) < pos || pos < 0 {
-		return newError("Invalid position")
+		return newError("Invalid position.")
 	}
 	var (
 		u = make([]Column, pos)

@@ -35,7 +35,7 @@ func (b *SelectStatement) Columns(columns ...Column) *SelectStatement {
 	}
 	for _, col := range columns {
 		if !b.from.hasColumn(col) {
-			b.err = newError("column not found in FROM")
+			b.err = newError("column not found in FROM.")
 			return b
 		}
 	}
@@ -51,7 +51,7 @@ func (b *SelectStatement) Where(cond Condition) *SelectStatement {
 	}
 	for _, col := range cond.columns() {
 		if !b.from.hasColumn(col) {
-			b.err = newError("column not found in FROM")
+			b.err = newError("column not found in FROM.")
 			return b
 		}
 	}
@@ -156,7 +156,7 @@ func (b *SelectStatement) serialize(bldr *builder) {
 	// HAVING
 	if b.having != nil {
 		if b.groupBy == nil {
-			bldr.SetError(newError("GROUP BY by clause is not found"))
+			bldr.SetError(newError("GROUP BY clause is not found."))
 		}
 		bldr.Append(" HAVING ")
 		bldr.AppendItem(b.having)
@@ -206,7 +206,7 @@ func newSubquery(s *SelectStatement, alias string) *subquery {
 	}
 
 	if len(alias) == 0 {
-		m.err = newError("alias is empty")
+		m.err = newError("alias is empty.")
 	}
 	return m
 }
@@ -256,22 +256,22 @@ func (m *subquery) Option() *TableOption {
 }
 
 func (m *subquery) InnerJoin(Table, Condition) Table {
-	m.err = newError("Subquery can not join")
+	m.err = newError("subquery can not join.")
 	return m
 }
 
 func (m *subquery) LeftOuterJoin(Table, Condition) Table {
-	m.err = newError("Subquery can not join")
+	m.err = newError("subquery can not join.")
 	return m
 }
 
 func (m *subquery) RightOuterJoin(Table, Condition) Table {
-	m.err = newError("Subquery can not join")
+	m.err = newError("subquery can not join.")
 	return m
 }
 
 func (m *subquery) FullOuterJoin(Table, Condition) Table {
-	m.err = newError("Subquery can not join")
+	m.err = newError("subquery can not join.")
 	return m
 }
 

@@ -87,7 +87,7 @@ func (l *literalImpl) converted() (interface{}, error) {
 	case nil:
 		return nil, nil
 	default:
-		return nil, newError("got %T type, but literal is not supporting this", t)
+		return nil, newError("got %T type, but literal is not supporting this.", t)
 	}
 }
 

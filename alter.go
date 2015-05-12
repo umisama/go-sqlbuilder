@@ -233,7 +233,7 @@ func (b *alterTableAddColumn) serialize(bldr *builder) {
 	if err != nil {
 		bldr.SetError(err)
 	} else if len(typ) == 0 {
-		bldr.SetError(newError("Column type is required.(maybe, a bug is in implements of dialect.)"))
+		bldr.SetError(newError("column type is required.(maybe, a bug is in implements of dialect.)"))
 	} else {
 		bldr.Append(" ")
 		bldr.Append(typ)
@@ -291,7 +291,7 @@ func (b *alterTableChangeColumn) serialize(bldr *builder) {
 	if err != nil {
 		bldr.SetError(err)
 	} else if len(typ) == 0 {
-		bldr.SetError(newError("Column type is required.(maybe, a bug is in implements of dialect.)"))
+		bldr.SetError(newError("column type is required.(maybe, a bug is in implements of dialect.)"))
 	} else {
 		bldr.Append(" ")
 		bldr.Append(typ)

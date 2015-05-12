@@ -73,7 +73,7 @@ func newBinaryOperationCondition(left, right interface{}, operator string) *bina
 		column_exist = true
 		cond.left = t
 	case nil:
-		cond.err = newError("Left-hand side of binary operator is null.")
+		cond.err = newError("left-hand side of binary operator is null.")
 	default:
 		cond.left = toLiteral(t)
 	}
@@ -85,7 +85,7 @@ func newBinaryOperationCondition(left, right interface{}, operator string) *bina
 		cond.right = toLiteral(t)
 	}
 	if !column_exist {
-		cond.err = newError("Binary operation is need column.")
+		cond.err = newError("binary operation is need column.")
 	}
 
 	return cond
@@ -114,7 +114,7 @@ func (c *binaryOperationCondition) serialize(bldr *builder) {
 			case "<>":
 				bldr.Append(" IS NOT ")
 			default:
-				bldr.SetError(newError("NULL can not be used with %s operator", c.operator))
+				bldr.SetError(newError("NULL can not be used with %s operator.", c.operator))
 			}
 			bldr.Append("NULL")
 		} else {

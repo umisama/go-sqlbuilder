@@ -323,7 +323,7 @@ func (b ColumnList) serialize(bldr *builder) {
 	first := true
 	for _, column := range b {
 		if column == nil {
-			bldr.SetError(newError("column is not found"))
+			bldr.SetError(newError("column is not found."))
 			return
 		}
 		if first {

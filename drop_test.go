@@ -24,20 +24,20 @@ func TestDropTable(t *testing.T) {
 	tableJoined := table1.InnerJoin(table2, table1.C("test1").Eq(table2.C("id")))
 
 	var cases = []statementTestCase{{
-		DropTable(table1),
-		`DROP TABLE "TABLE_A";`,
-		[]interface{}{},
-		false,
+		stmt:   DropTable(table1),
+		query:  `DROP TABLE "TABLE_A";`,
+		args:   []interface{}{},
+		errmsg: "",
 	}, {
-		DropTable(nil),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   DropTable(nil),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: table is nil.",
 	}, {
-		DropTable(tableJoined),
-		``,
-		[]interface{}{},
-		true,
+		stmt:   DropTable(tableJoined),
+		query:  ``,
+		args:   []interface{}{},
+		errmsg: "sqlbuilder: table is not natural table.",
 	}}
 	for num, c := range cases {
 		mes, args, ok := c.Run()
