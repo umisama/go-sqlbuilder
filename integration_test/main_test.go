@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	sb "github.com/umisama/go-sqlbuilder"
@@ -88,7 +89,8 @@ func TestMain(m *testing.M) {
 
 	var cases = []testcase{
 		{"sqlite", dialects.Sqlite{}, "sqlite3", ":memory:"},
-		{"mymysql", dialects.MySql{}, "mymysql", "go_sqlbuilder_test/root/"},
+		{"mysql(ziutek/mymysql)", dialects.MySql{}, "mymysql", "go_sqlbuilder_test1/root/"},
+		{"mysql(go-sql-driver/mysql)", dialects.MySql{}, "mysql", "root:@/go_sqlbuilder_test2?parseTime=true"},
 		{"postgres", dialects.Postgresql{}, "postgres", "user=postgres dbname=go_sqlbuilder_test sslmode=disable"},
 	}
 

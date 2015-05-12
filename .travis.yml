@@ -13,7 +13,8 @@ before_install:
   - go get golang.org/x/tools/cmd/cover
 
 before_script:
-  - mysql -e 'create database go_sqlbuilder_test;'
+  - mysql -e 'create database go_sqlbuilder_test1;'
+  - mysql -e 'create database go_sqlbuilder_test2;'
   - psql -c 'create database go_sqlbuilder_test' -U postgres
 
 script:

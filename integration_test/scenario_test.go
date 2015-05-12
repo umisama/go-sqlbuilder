@@ -14,12 +14,12 @@ func TestCreateTable(t *testing.T) {
 	for _, table := range []sb.Table{tbl_person, tbl_phone, tbl_email} {
 		query, args, err := sb.CreateTable(table).ToSql()
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 
 		_, err = db.Exec(query, args...)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 	}
 }
@@ -29,12 +29,12 @@ func TestAlterTable(t *testing.T) {
 	query, args, err := stmt.ToSql()
 	_, err = db.Exec(query, args...)
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 
 	err = stmt.ApplyToTable()
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 }
 
@@ -43,12 +43,12 @@ func TestCreateIndex(t *testing.T) {
 		query, args, err := sb.CreateIndex(table).Name("I_" + table.Name() + "_PERSONID").Columns(table.C("person_id")).
 			ToSql()
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 
 		_, err = db.Exec(query, args...)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 	}
 }
@@ -60,12 +60,12 @@ func TestInsertToPersonTable(t *testing.T) {
 			Values(person.Id, person.Name, person.Birth).
 			ToSql()
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 
 		_, err = db.Exec(query, args...)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 	}
 }
@@ -77,12 +77,12 @@ func TestInsertToPhoneTable(t *testing.T) {
 			Values(phone.PersonId, phone.Number).
 			ToSql()
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 
 		_, err = db.Exec(query, args...)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 	}
 }
@@ -94,12 +94,12 @@ func TestInsertToEmailTable(t *testing.T) {
 			Values(email.PersonId, email.Address).
 			ToSql()
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 
 		_, err = db.Exec(query, args...)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 	}
 }
@@ -110,11 +110,11 @@ func TestSelectSimple(t *testing.T) {
 		OrderBy(false, tbl_person.C("id")).
 		ToSql()
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 
 	got_persons := make([]Person, 0)
@@ -123,7 +123,7 @@ func TestSelectSimple(t *testing.T) {
 			id, name, birth := 0, "", time.Time{}
 			err := rows.Scan(&id, &name, &birth)
 			if err != nil {
-				t.Error("failed")
+				t.Error(err.Error())
 			}
 			got_persons = append(got_persons, Person{
 				Id:    id,
@@ -133,10 +133,10 @@ func TestSelectSimple(t *testing.T) {
 		}
 		rows.Close()
 	} else {
-		t.Error("failed")
+		t.Error("faild")
 	}
 	if !reflect.DeepEqual(got_persons, persons) {
-		t.Error("failed")
+		t.Error("faild")
 	}
 }
 
@@ -180,11 +180,11 @@ func TestSelectJoinedWithAlias(t *testing.T) {
 		OrderBy(false, tbl_email.C("id")).
 		ToSql()
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 
 	got_persons := make([]PersonEmail, 0)
@@ -193,7 +193,7 @@ func TestSelectJoinedWithAlias(t *testing.T) {
 			id, name, birth, email := 0, "", time.Time{}, ""
 			err := rows.Scan(&id, &name, &birth, &email)
 			if err != nil {
-				t.Error("failed")
+				t.Error(err.Error())
 			}
 			got_persons = append(got_persons, PersonEmail{
 				Id:    id,
@@ -247,11 +247,11 @@ func TestSelectJoined(t *testing.T) {
 		OrderBy(false, tbl_email.C("id")).
 		ToSql()
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 
 	got_persons := make([]PersonEmail, 0)
@@ -260,7 +260,7 @@ func TestSelectJoined(t *testing.T) {
 			id, name, birth, email := 0, "", time.Time{}, ""
 			err := rows.Scan(&id, &name, &birth, &email)
 			if err != nil {
-				t.Error("failed")
+				t.Error(err.Error())
 			}
 			got_persons = append(got_persons, PersonEmail{
 				Id:    id,
@@ -281,12 +281,12 @@ func TestSelectJoined(t *testing.T) {
 func TestDelete(t *testing.T) {
 	query, args, err := sb.Delete(tbl_phone).Where(tbl_phone.C("id").Eq(1)).ToSql()
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 
 	_, err = db.Exec(query, args...)
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 }
 
@@ -295,12 +295,12 @@ func TestSqlFunction1(t *testing.T) {
 		Columns(sb.Func("count", tbl_phone.C("id"))).
 		ToSql()
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		t.Error("failed")
+		t.Error(err.Error())
 	}
 	if rows != nil {
 		defer rows.Close()
@@ -308,7 +308,7 @@ func TestSqlFunction1(t *testing.T) {
 		value := 0
 		err := rows.Scan(&value)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 		if value != 2 {
 			t.Error("failed")
@@ -322,12 +322,12 @@ func TestDropTable(t *testing.T) {
 	for _, table := range []sb.Table{tbl_person, tbl_phone, tbl_email} {
 		query, args, err := sb.DropTable(table).ToSql()
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 
 		_, err = db.Exec(query, args...)
 		if err != nil {
-			t.Error("failed")
+			t.Error(err.Error())
 		}
 	}
 }

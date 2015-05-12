@@ -16,6 +16,7 @@
  * Some database server
    * Sqlite3([mattn/go-sqlite3](https://github.com/mattn/go-sqlite3))
    * MySQL([ziutek/mymysql](https://github.com/ziutek/mymysql))
+   * MySQL([go-sql-driver/mysql](https://github.com/go-sql-driver/mysql))
    * PostgresSQL([lib/pq](https://github.com/lib/pq))
  * Subquery in SELECT FROM clause
 
