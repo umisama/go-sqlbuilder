@@ -6,6 +6,9 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestMain(m *testing.M) {
@@ -18,6 +21,74 @@ func TestError(t *testing.T) {
 	if "sqlbuilder: hogehogestring" != err.Error() {
 		t.Errorf("failed\ngot %s", err.Error)
 	}
+}
+
+func ExampleScenario() {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Set dialect first
+	// dialects are in github.com/umisama/go-sqlbuilder/dialects
+	SetDialect(TestDialect{})
+
+	// Define a table
+	tbl_person := NewTable(
+		"PERSON",
+		&TableOption{},
+		IntColumn("id", &ColumnOption{
+			PrimaryKey: true,
+		}),
+		StringColumn("name", &ColumnOption{
+			Unique:  true,
+			Size:    255,
+			Default: "no_name",
+		}),
+		DateColumn("birth", nil),
+	)
+
+	// Create Table
+	query, args, err := CreateTable(tbl_person).ToSql()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	_, err = db.Exec(query, args...)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Insert data
+	// (Table).C function returns a column object.
+	query, args, err = Insert(tbl_person).
+		Set(tbl_person.C("name"), "Kurisu Makise").
+		Set(tbl_person.C("birth"), time.Date(1992, time.July, 25, 0, 0, 0, 0, time.UTC)).
+		ToSql()
+	_, err = db.Exec(query, args...)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Query
+	var birth time.Time
+	query, args, err = Select(tbl_person).Columns(
+		tbl_person.C("birth"),
+	).Where(
+		tbl_person.C("name").Eq("Kurisu Makise"),
+	).ToSql()
+	err = db.QueryRow(query, args...).Scan(&birth)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Printf("Kurisu's birthday is %s,%d %d", birth.Month().String(), birth.Day(), birth.Year())
+
+	// Output:
+	// Kurisu's birthday is July,25 1992
 }
 
 type TestDialect struct{}
