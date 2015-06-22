@@ -11,6 +11,7 @@ type SelectStatement struct {
 	limit    int
 	offset   int
 	having   Condition
+	locks    []LockClause
 
 	err error
 }
@@ -82,7 +83,7 @@ func (b *SelectStatement) GroupBy(columns ...Column) *SelectStatement {
 	return b
 }
 
-// GroupBy sets "HAVING" clause with the cond.
+// Having sets "HAVING" clause with the cond.
 func (b *SelectStatement) Having(cond Condition) *SelectStatement {
 	if b.err != nil {
 		return b
@@ -121,6 +122,12 @@ func (b *SelectStatement) Offset(offset int) *SelectStatement {
 		return b
 	}
 	b.offset = offset
+	return b
+}
+
+// Lock sets LOCK clause(s).
+func (b *SelectStatement) Locks(locks ...LockClause) *SelectStatement {
+	b.locks = locks
 	return b
 }
 
@@ -179,6 +186,17 @@ func (b *SelectStatement) serialize(bldr *builder) {
 		bldr.Append(" OFFSET ")
 		bldr.AppendValue(b.offset)
 	}
+
+	// FOR lock_strength [ OF table_name [, ...] ] [ NOWAIT ]
+	if len(b.locks) > 0 {
+		bldr.Append(" FOR ")
+		l := make([]serializable, len(b.locks))
+		for i, v := range b.locks {
+			l[i] = v
+		}
+		bldr.AppendItems(l, " ")
+	}
+
 	return
 }
 
