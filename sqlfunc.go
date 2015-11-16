@@ -100,6 +100,10 @@ func (left *sqlFuncImpl) In(vals ...interface{}) Condition {
 	return newInCondition(left, vals...)
 }
 
+func (left *sqlFuncImpl) IntersectJSON(data string) Condition {
+	return newIntersectJSONCondition(left, data)
+}
+
 func (m *sqlFuncImpl) columns() []Column {
 	return m.args
 }
