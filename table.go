@@ -13,6 +13,7 @@ type table struct {
 	name    string
 	option  *TableOption
 	columns []Column
+	alias   string
 }
 
 // TableOption reprecents constraint of a table.
@@ -26,11 +27,15 @@ type joinTable struct {
 	left  Table
 	right Table
 	on    Condition
+	alias string
 }
 
 // Table represents a table.
 type Table interface {
 	serializable
+
+	// As returns a copy of the table with an alias.
+	As(alias string) Table
 
 	// C returns table's column by the name.
 	C(name string) Column
@@ -93,7 +98,32 @@ func NewTable(name string, option *TableOption, column_configs ...ColumnConfig) 
 
 func (m *table) serialize(bldr *builder) {
 	bldr.Append(dialect().QuoteField(m.name))
+	if m.alias != "" {
+		bldr.Append(" " + m.alias)
+	}
 	return
+}
+
+func (m *table) As(alias string) Table {
+	t := &table{
+		name:    m.name,
+		option:  m.option,
+		alias:   alias,
+		columns: make([]Column, len(m.columns)),
+	}
+
+	for i, c := range m.columns {
+		if cc, ok := c.(*columnImpl); ok {
+			c = &columnImpl{
+				columnConfigImpl: cc.columnConfigImpl,
+				table:            t,
+			}
+		}
+
+		t.columns[i] = c
+	}
+
+	return t
 }
 
 func (m *table) C(name string) Column {
@@ -107,6 +137,10 @@ func (m *table) C(name string) Column {
 }
 
 func (m *table) Name() string {
+	if m.alias != "" {
+		return m.alias
+	}
+
 	return m.name
 }
 
@@ -318,6 +352,10 @@ func (m *table) hasColumn(trg Column) bool {
 		return true
 	}
 	return false
+}
+
+func (m *joinTable) As(string) Table {
+	return m
 }
 
 func (m *joinTable) C(name string) Column {

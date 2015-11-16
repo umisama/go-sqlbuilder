@@ -222,6 +222,10 @@ func (m *subquery) serialize(bldr *builder) {
 	return
 }
 
+func (m *subquery) As(string) Table {
+	return m
+}
+
 func (m *subquery) Name() string {
 	return m.alias
 }
