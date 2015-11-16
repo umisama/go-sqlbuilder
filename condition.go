@@ -207,3 +207,25 @@ func (c *inCondition) columns() []Column {
 	}
 	return list
 }
+
+type intersectJSONCondition struct {
+	left Column
+	data serializable
+}
+
+func newIntersectJSONCondition(left Column, data string) Condition {
+	return &intersectJSONCondition{
+		left: left,
+		data: toLiteral(data),
+	}
+}
+
+func (c *intersectJSONCondition) serialize(bldr *builder) {
+	bldr.AppendItem(c.left)
+	bldr.Append(" @> ")
+	bldr.AppendItem(c.data)
+}
+
+func (c *intersectJSONCondition) columns() []Column {
+	return []Column{c.left}
+}

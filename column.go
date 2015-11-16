@@ -144,6 +144,9 @@ type Column interface {
 
 	// In creates Condition for "column IN (values[0], values[1] ...)".  Type for values is column's one or other Column.
 	In(values ...interface{}) Condition
+
+	// IntersectJSON creates Condition for "column @> value".  The value is a JSON string.
+	IntersectJSON(data string) Condition
 }
 
 type aliasedColumn interface {
@@ -319,6 +322,10 @@ func (left *columnImpl) In(val ...interface{}) Condition {
 	return newInCondition(left, val...)
 }
 
+func (left *columnImpl) IntersectJSON(data string) Condition {
+	return newIntersectJSONCondition(left, data)
+}
+
 func (b ColumnList) serialize(bldr *builder) {
 	first := true
 	for _, column := range b {
@@ -403,6 +410,10 @@ func (left *errorColumn) In(val ...interface{}) Condition {
 	return newInCondition(left, val...)
 }
 
+func (left *errorColumn) IntersectJSON(data string) Condition {
+	return newIntersectJSONCondition(left, data)
+}
+
 type aliasColumn struct {
 	column Column
 	alias  string
@@ -474,4 +485,8 @@ func (left *aliasColumn) Between(lower, higher interface{}) Condition {
 
 func (left *aliasColumn) In(val ...interface{}) Condition {
 	return newInCondition(left, val...)
+}
+
+func (left *aliasColumn) IntersectJSON(data string) Condition {
+	return newIntersectJSONCondition(left, data)
 }
