@@ -2,9 +2,10 @@ package sqlbuilder
 
 // InsertStatement represents a INSERT statement.
 type InsertStatement struct {
-	columns ColumnList
-	values  []literal
-	into    Table
+	columns   ColumnList
+	values    []literal
+	into      Table
+	returning Column
 
 	err error
 }
@@ -72,6 +73,18 @@ func (b *InsertStatement) Set(column Column, value interface{}) *InsertStatement
 	return b
 }
 
+func (b *InsertStatement) Returning(column Column) *InsertStatement {
+	if b.err != nil {
+		return b
+	}
+	if !b.into.hasColumn(column) {
+		b.err = newError("column not found in FROM.")
+		return b
+	}
+	b.returning = column
+	return b
+}
+
 // ToSql generates query string, placeholder arguments, and returns err on errors.
 func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) {
 	bldr := newBuilder()
@@ -118,6 +131,11 @@ func (b *InsertStatement) ToSql() (query string, args []interface{}, err error) 
 	}
 	bldr.AppendItems(values, ", ")
 	bldr.Append(" )")
+
+	if b.returning != nil {
+		bldr.Append(" RETURNING ")
+		bldr.AppendItem(b.returning)
+	}
 
 	return
 }
