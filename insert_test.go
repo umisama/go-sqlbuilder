@@ -47,6 +47,13 @@ func TestInsert(t *testing.T) {
 		args:   []interface{}{"hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
 		errmsg: "",
 	}, {
+		stmt: Insert(table1).
+			Set(table1.C("str"), "x").
+			Returning(table1.C("id")),
+		query:  `INSERT INTO "TABLE_A" ( "str" ) VALUES ( ? ) RETURNING "TABLE_A"."id";`,
+		args:   []interface{}{"x"},
+		errmsg: "",
+	}, {
 		stmt:   Insert(table1).Values(1, "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}),
 		query:  `INSERT INTO "TABLE_A" ( "id", "str", "bool", "float", "date", "bytes" ) VALUES ( ?, ?, ?, ?, ?, ? );`,
 		args:   []interface{}{int64(1), "hoge", true, 0.1, time.Unix(0, 0).UTC(), []byte{0x01}},
